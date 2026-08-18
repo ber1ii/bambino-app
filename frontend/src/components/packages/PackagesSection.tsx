@@ -1,7 +1,7 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import type { PartyPackage } from '../../types';
-import { PackageCard } from './PackageCard';
+import React from "react";
+import { motion } from "framer-motion";
+import type { PartyPackage } from "../../types";
+import { PackageCard } from "./PackageCard";
 
 interface PackagesSectionProps {
   packages: PartyPackage[];
@@ -13,7 +13,10 @@ export const PackagesSection: React.FC<PackagesSectionProps> = ({
   onSelectPackage,
 }) => {
   return (
-    <section id="paketi" className="py-16 md:py-24 px-4 sm:px-6 relative overflow-hidden">
+    <section
+      id="paketi"
+      className="py-16 md:py-24 px-4 sm:px-6 relative overflow-hidden"
+    >
       <div className="max-w-5xl mx-auto relative z-10">
         <div className="text-center space-y-3 md:space-y-4 mb-10 md:mb-16">
           <motion.div
@@ -41,33 +44,39 @@ export const PackagesSection: React.FC<PackagesSectionProps> = ({
             transition={{ delay: 0.1 }}
             className="text-base md:text-lg font-bold text-[#2D3748]/70 max-w-xl mx-auto px-2"
           >
-            Izaberite tarifu u zavisnosti od dana proslave. Svaki termin možete prilagoditi dodatnim vremenom i posebnom dekoracijom.
+            Izaberite tarifu u zavisnosti od dana proslave. Svaki termin možete
+            prilagoditi dodatnim vremenom i posebnom dekoracijom.
           </motion.p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 items-stretch">
-          {packages.map((pkg: PartyPackage) => (
-            <PackageCard
-              key={pkg.id}
-              pkg={{
-                id: pkg.id as 'radni-dan' | 'vikend',
-                title: pkg.name,
-                price: pkg.price.toLocaleString('sr-RS'),
-                days: pkg.id === 'vikend' ? 'Subota – Nedelja' : 'Ponedeljak – Petak',
-                duration: `${pkg.durationMinutes / 60} sata`,
-                description: pkg.description,
-                features: [
-                  'Ekskluzivan zakup celog prostora (2h)',
-                  'Iskusni animatori i nadzor dece',
-                  'Kompletan pribor za posluženje',
-                  'Mogućnost dodavanja dodatnog vremena (+30 min / +1h)',
-                  'Slobodno donošenje sopstvene hrane i torte',
-                ],
-                isPopular: pkg.id === 'vikend',
-              }}
-              onSelect={() => onSelectPackage(pkg)}
-            />
-          ))}
+          {packages.map((pkg: PartyPackage) => {
+            const isWeekend =
+              pkg.name.toLowerCase().includes("vikend") || pkg.id === "vikend";
+
+            return (
+              <PackageCard
+                key={pkg.id}
+                pkg={{
+                  id: isWeekend ? "vikend" : "radni-dan",
+                  title: pkg.name,
+                  price: pkg.price.toLocaleString("sr-RS"),
+                  days: isWeekend ? "Subota – Nedelja" : "Ponedeljak – Petak",
+                  duration: `${Math.round(pkg.durationMinutes / 60)} sata`,
+                  description: pkg.description,
+                  features: [
+                    "Ekskluzivan zakup celog prostora (2h)",
+                    "Iskusni animatori i nadzor dece",
+                    "Kompletan pribor za posluženje",
+                    "Mogućnost dodavanja dodatnog vremena (+30 min / +1h)",
+                    "Slobodno donošenje sopstvene hrane i torte",
+                  ],
+                  isPopular: isWeekend,
+                }}
+                onSelect={() => onSelectPackage(pkg)}
+              />
+            );
+          })}
         </div>
       </div>
     </section>
