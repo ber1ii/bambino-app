@@ -59,7 +59,6 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 }) => {
   const [dbPackages, setDbPackages] = useState<Package[]>([]);
   const [reservedSlots, setReservedSlots] = useState<TimeSlot[]>([]);
-  const [loadingPackages, setLoadingPackages] = useState(false);
 
   // Form Field States
   const [dayType, setDayType] = useState<"radni-dan" | "vikend">("radni-dan");
@@ -92,12 +91,10 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
-      setLoadingPackages(true);
       api
         .getPackages()
         .then((pkgs) => setDbPackages(pkgs))
-        .catch((err) => console.error("Failed to load packages:", err))
-        .finally(() => setLoadingPackages(false));
+        .catch((err) => console.error("Failed to load packages:", err));
     } else {
       document.body.style.overflow = "unset";
     }
