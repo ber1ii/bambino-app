@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, Camera, Heart, CheckCircle2 } from 'lucide-react';
+import { Sparkles, Camera, Heart } from 'lucide-react';
 import mascot from '../../photos/mascot.jpg';
 
 export const MascotSection: React.FC = () => {

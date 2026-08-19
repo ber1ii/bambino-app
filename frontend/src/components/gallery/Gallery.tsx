@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ZoomIn, ChevronLeft, ChevronRight } from "lucide-react";
+import { ZoomIn, ChevronLeft, ChevronRight } from "lucide-react";
 
 import zamena1 from "../../photos/zamena_za_1.jpg";
 import zamena2 from "../../photos/zamena_za_2.jpg";
