@@ -37,9 +37,6 @@ export const App: React.FC = () => {
 
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
-  const [selectedPackage, setSelectedPackage] = useState<PartyPackage | null>(
-    null,
-  );
   const [packages, setPackages] = useState<PartyPackage[]>([]);
 
   useEffect(() => {
@@ -88,8 +85,7 @@ export const App: React.FC = () => {
     );
   }
 
-  const handleOpenBooking = (pkg?: PartyPackage) => {
-    if (pkg) setSelectedPackage(pkg);
+  const handleOpenBooking = () => {
     setIsBookingOpen(true);
   };
 
@@ -97,13 +93,10 @@ export const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F5F2EB] via-[#E8EED8] to-[#DCE6C8] text-[#2C3E2E] overflow-x-hidden">
-      <Navbar
-        onOpenBooking={() => handleOpenBooking()}
-        isGalleryOpen={isGalleryOpen}
-      />
+      <Navbar onOpenBooking={handleOpenBooking} isGalleryOpen={isGalleryOpen} />
 
       <main className="relative z-10">
-        <Hero onOpenBooking={() => handleOpenBooking()} />
+        <Hero onOpenBooking={handleOpenBooking} />
 
         <div className="relative">
           <div className="absolute -left-16 sm:left-0 top-0 bottom-0 w-40 sm:w-80 md:w-[480px] lg:w-[540px] pointer-events-none z-0 opacity-25 sm:opacity-40 mix-blend-multiply flex flex-col">
@@ -142,7 +135,7 @@ export const App: React.FC = () => {
 
             <PackagesSection
               packages={packages}
-              onSelectPackage={(pkg?: PartyPackage) => handleOpenBooking(pkg)}
+              onSelectPackage={handleOpenBooking}
             />
             <MascotSection />
             <Testimonials />
@@ -155,13 +148,9 @@ export const App: React.FC = () => {
         </div>
       </main>
 
-      <StickyBookBar onOpenBooking={() => handleOpenBooking()} />
+      <StickyBookBar onOpenBooking={handleOpenBooking} />
 
-      <BookingModal
-        isOpen={isBookingOpen}
-        onClose={handleCloseBooking}
-        selectedPackage={selectedPackage}
-      />
+      <BookingModal isOpen={isBookingOpen} onClose={handleCloseBooking} />
     </div>
   );
 };
