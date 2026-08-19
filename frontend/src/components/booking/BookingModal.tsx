@@ -10,36 +10,21 @@ import {
   Smile,
   Cake,
   MessageSquare,
-  CalendarDays,
-  CalendarHeart,
   Check,
   AlertCircle,
   Loader2,
   PlusCircle,
+  Info,
+  Sparkles,
 } from "lucide-react";
 import { api, type Package, type TimeSlot } from "../../services/api";
 
 interface BookingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  selectedPackage?: { id: string; name: string } | null;
 }
 
 const springConfig = { type: "spring", stiffness: 300, damping: 30 };
-
-const AVAILABLE_HOURS = [
-  "10:00",
-  "11:00",
-  "12:00",
-  "13:00",
-  "14:00",
-  "15:00",
-  "16:00",
-  "17:00",
-  "18:00",
-  "19:00",
-  "20:00",
-];
 
 const toLocalISOString = (dateStr: string, timeStr: string) => {
   const date = new Date(`${dateStr}T${timeStr}:00`);
@@ -55,16 +40,14 @@ const toLocalISOString = (dateStr: string, timeStr: string) => {
 export const BookingModal: React.FC<BookingModalProps> = ({
   isOpen,
   onClose,
-  selectedPackage,
 }) => {
   const [dbPackages, setDbPackages] = useState<Package[]>([]);
   const [reservedSlots, setReservedSlots] = useState<TimeSlot[]>([]);
 
   // Form Field States
-  const [dayType, setDayType] = useState<"radni-dan" | "vikend">("radni-dan");
-  const [extraTimeMinutes, setExtraTimeMinutes] = useState<number>(0); // 0, 30, or 60 min
+  const [extraTimeMinutes, setExtraTimeMinutes] = useState<number>(0);
   const [selectedDate, setSelectedDate] = useState<string>("");
-  const [startTime, setStartTime] = useState<string>("15:00");
+  const [selectedSlot, setSelectedSlot] = useState<string>("");
   const [parentName, setParentName] = useState<string>("");
   const [childName, setChildName] = useState<string>("");
   const [childAge, setChildAge] = useState<number | "">(5);
@@ -73,20 +56,26 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const [notes, setNotes] = useState<string>("");
 
   // UI Feedback States
-  const [dateError, setDateError] = useState<string>("");
   const [slotConflict, setSlotConflict] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submitError, setSubmitError] = useState<string>("");
   const [submitSuccess, setSubmitSuccess] = useState<boolean>(false);
 
-  useEffect(() => {
-    if (
-      selectedPackage?.id === "vikend" ||
-      selectedPackage?.id === "radni-dan"
-    ) {
-      setDayType(selectedPackage.id as "radni-dan" | "vikend");
-    }
-  }, [selectedPackage]);
+  // Automatic Day Type Detection
+  const getDayType = (dateStr: string): "radni-dan" | "vikend" | null => {
+    if (!dateStr) return null;
+    const [year, month, day] = dateStr.split("-").map(Number);
+    const dateObj = new Date(year, month - 1, day);
+    const dayOfWeek = dateObj.getDay();
+    return dayOfWeek === 0 || dayOfWeek === 6 ? "vikend" : "radni-dan";
+  };
+
+  const currentDayType = getDayType(selectedDate);
+
+  const availableSlots =
+    currentDayType === "vikend"
+      ? ["10:30 - 12:30", "13:00 - 15:00", "15:30 - 17:30", "18:00 - 20:00"]
+      : ["15:30 - 17:30", "18:00 - 20:00"];
 
   useEffect(() => {
     if (isOpen) {
@@ -103,28 +92,10 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     };
   }, [isOpen]);
 
-  useEffect(() => {
-    if (!selectedDate) {
-      setReservedSlots([]);
-      setSlotConflict(false);
-      return;
-    }
-
-    api
-      .getAvailability(selectedDate)
-      .then((slots) => {
-        setReservedSlots(slots);
-        checkSlotConflict(selectedDate, startTime, extraTimeMinutes, slots);
-      })
-      .catch((err) => console.error("Failed to check availability:", err));
-  }, [selectedDate, startTime, extraTimeMinutes]);
-
-  const calculateTotalDuration = () => {
-    return 120 + extraTimeMinutes; // 2 hours base + extra time
-  };
+  const calculateTotalDuration = () => 120 + extraTimeMinutes;
 
   const calculateTotalPrice = () => {
-    const basePrice = dayType === "radni-dan" ? 13000 : 16000;
+    const basePrice = currentDayType === "vikend" ? 16000 : 13000;
     const extraPrice =
       extraTimeMinutes === 30 ? 2000 : extraTimeMinutes === 60 ? 4000 : 0;
     return basePrice + extraPrice;
@@ -132,38 +103,41 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
   const checkSlotConflict = (
     date: string,
-    time: string,
+    slot: string,
     extraMins: number,
     slots: TimeSlot[],
   ) => {
-    if (!date || !time) return;
-    const proposedStart = new Date(`${date}T${time}:00`);
+    if (!date || !slot) {
+      setSlotConflict(false);
+      return;
+    }
+    const [startStr] = slot.split(" - ");
+    const proposedStart = new Date(`${date}T${startStr}:00`);
     const totalDuration = 120 + extraMins;
     const proposedEnd = new Date(
       proposedStart.getTime() + totalDuration * 60 * 1000,
     );
 
-    const hasConflict = slots.some((slot) => {
-      const slotStart = new Date(slot.start_time);
-      const slotEnd = new Date(slot.end_time);
-      // Use < and > so exact boundary end times (e.g. 19:00) remain selectable
+    const hasConflict = slots.some((s) => {
+      const slotStart = new Date(s.start_time);
+      const slotEnd = new Date(s.end_time);
       return proposedStart < slotEnd && proposedEnd > slotStart;
     });
 
     setSlotConflict(hasConflict);
   };
 
-  const isTimeSlotOccupied = (timeStr: string) => {
+  const isTimeSlotOccupied = (slot: string) => {
     if (!selectedDate || reservedSlots.length === 0) return false;
-    const checkStart = new Date(`${selectedDate}T${timeStr}:00`);
+    const [startStr] = slot.split(" - ");
+    const checkStart = new Date(`${selectedDate}T${startStr}:00`);
     const checkEnd = new Date(
       checkStart.getTime() + calculateTotalDuration() * 60 * 1000,
     );
 
-    return reservedSlots.some((slot) => {
-      const slotStart = new Date(slot.start_time);
-      const slotEnd = new Date(slot.end_time);
-      // Use < and > so 19:00 is available when a 17:00-19:00 booking exists
+    return reservedSlots.some((s) => {
+      const slotStart = new Date(s.start_time);
+      const slotEnd = new Date(s.end_time);
       return checkStart < slotEnd && checkEnd > slotStart;
     });
   };
@@ -177,7 +151,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     try {
       const slots = await api.getAvailability(date);
       setReservedSlots(slots);
-      checkSlotConflict(date, startTime, extraTimeMinutes, slots);
+      checkSlotConflict(date, selectedSlot, extraTimeMinutes, slots);
     } catch (err) {
       console.error("Failed to check availability:", err);
     }
@@ -185,52 +159,21 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
   useEffect(() => {
     fetchAvailability(selectedDate);
-  }, [selectedDate, startTime, extraTimeMinutes]);
-
-  const handleDayTypeChange = (type: "radni-dan" | "vikend") => {
-    setDayType(type);
-    setSelectedDate("");
-    setDateError("");
-    setSlotConflict(false);
-  };
+  }, [selectedDate, selectedSlot, extraTimeMinutes]);
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    if (!val) {
-      setSelectedDate("");
-      setDateError("");
-      return;
-    }
-
-    const [year, month, day] = val.split("-").map(Number);
-    const dateObj = new Date(year, month - 1, day);
-    const dayOfWeek = dateObj.getDay(); // 0 = Sunday, 6 = Saturday
-    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-
-    if (dayType === "vikend" && !isWeekend) {
-      setDateError("Za vikend tarifu možete izabrati samo Subotu ili Nedelju.");
-      setSelectedDate("");
-      return;
-    }
-
-    if (dayType === "radni-dan" && isWeekend) {
-      setDateError(
-        "Za tarifu radnog dana možete izabrati samo Ponedeljak – Petak.",
-      );
-      setSelectedDate("");
-      return;
-    }
-
-    setDateError("");
     setSelectedDate(val);
+    setSelectedSlot("");
+    setSlotConflict(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitError("");
 
-    if (!selectedDate) {
-      setDateError("Molimo izaberite odgovarajući datum.");
+    if (!selectedDate || !selectedSlot) {
+      setSubmitError("Molimo izaberite datum i termin.");
       return;
     }
 
@@ -241,24 +184,16 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       return;
     }
 
-    const searchStr = dayType === "radni-dan" ? "radni" : "vikend";
+    const searchStr = currentDayType === "vikend" ? "vikend" : "radni";
     const pkg = dbPackages.find((p: any) =>
       (p.title || p.name || "").toLowerCase().includes(searchStr),
     );
-    const finalPackageId = pkg ? pkg.id : dayType;
+    const finalPackageId = pkg ? pkg.id : (currentDayType ?? "radni-dan");
 
-    if (!/^[0-9a-fA-F-]{36}$/.test(finalPackageId)) {
-      setSubmitError(
-        "Greška: Nije moguće pronaći ID paketa. Osvežite stranicu.",
-      );
-      return;
-    }
+    const [startStr] = selectedSlot.split(" - ");
+    const startISO = toLocalISOString(selectedDate, startStr);
 
-    // Calculate start and end strings in local ISO format (+ offset)
-    const startISO = toLocalISOString(selectedDate, startTime);
-
-    // Calculate end time
-    const startDateTime = new Date(`${selectedDate}T${startTime}:00`);
+    const startDateTime = new Date(`${selectedDate}T${startStr}:00`);
     const endDateTime = new Date(
       startDateTime.getTime() + calculateTotalDuration() * 60 * 1000,
     );
@@ -286,9 +221,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         end_time: endISO,
       });
 
-      // Refetch slots immediately so the newly booked slot gets disabled instantly
       await fetchAvailability(selectedDate);
-
       setSubmitSuccess(true);
       setTimeout(() => {
         setSubmitSuccess(false);
@@ -364,57 +297,93 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                     </div>
                   )}
 
-                  {/* 1. Odabir Tarife/Paketa */}
-                  <div className="space-y-1.5 sm:space-y-2">
-                    <label className="text-[11px] sm:text-xs font-black text-[#2D3748]/80 uppercase tracking-wider">
-                      1. Izaberite Paket / Dan Proslave
-                    </label>
-                    <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
-                      <button
-                        type="button"
-                        onClick={() => handleDayTypeChange("radni-dan")}
-                        className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 flex flex-col items-center justify-center gap-0.5 sm:gap-1 transition-all text-center ${
-                          dayType === "radni-dan"
-                            ? "border-[#319795] bg-[#E6FFFA] shadow-md scale-[1.01]"
-                            : "border-white bg-white/80 hover:border-[#319795]/30"
-                        }`}
-                      >
-                        <CalendarDays
-                          className={`w-5 h-5 sm:w-6 sm:h-6 ${dayType === "radni-dan" ? "text-[#319795]" : "text-[#2D3748]/40"}`}
-                        />
-                        <span className="font-display font-bold text-sm sm:text-base text-[#2D3748]">
-                          Radni dan
-                        </span>
-                        <span className="text-[10px] sm:text-xs text-[#2D3748]/70 font-semibold leading-tight">
-                          2h igraonice & animacije
-                        </span>
-                        <span className="font-black text-[#319795] text-xs sm:text-sm mt-0.5">
-                          13.000 RSD
-                        </span>
-                      </button>
+                  {/* Pricing Info Banner */}
+                  <div className="bg-white/80 border border-[#DCE6C8] rounded-2xl p-3 sm:p-4 flex items-center justify-between text-xs sm:text-sm">
+                    <div className="flex items-center gap-2 text-[#2D3748]">
+                      <Sparkles className="w-4 h-4 text-[#319795]" />
+                      <span className="font-bold">
+                        Cene paketa (2h proslave):
+                      </span>
+                    </div>
+                    <div className="flex gap-3 text-xs">
+                      <span className="bg-[#E6FFFA] text-[#319795] font-black px-2.5 py-1 rounded-lg border border-[#319795]/20">
+                        Radni dan: 13.000 RSD
+                      </span>
+                      <span className="bg-[#EBF8FF] text-[#2B6CB0] font-black px-2.5 py-1 rounded-lg border border-[#2B6CB0]/20">
+                        Vikend: 16.000 RSD
+                      </span>
+                    </div>
+                  </div>
 
-                      <button
-                        type="button"
-                        onClick={() => handleDayTypeChange("vikend")}
-                        className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 flex flex-col items-center justify-center gap-0.5 sm:gap-1 transition-all text-center ${
-                          dayType === "vikend"
-                            ? "border-[#2B6CB0] bg-[#EBF8FF] shadow-md scale-[1.01]"
-                            : "border-white bg-white/80 hover:border-[#2B6CB0]/30"
-                        }`}
-                      >
-                        <CalendarHeart
-                          className={`w-5 h-5 sm:w-6 sm:h-6 ${dayType === "vikend" ? "text-[#2B6CB0]" : "text-[#2D3748]/40"}`}
+                  {/* 1. Datum i Izbor Sata */}
+                  <div className="grid sm:grid-cols-2 gap-3 sm:gap-5">
+                    <div className="space-y-1.5 sm:space-y-2">
+                      <label className="text-[11px] sm:text-xs font-black text-[#2D3748]/80 uppercase tracking-wider">
+                        Izaberite Datum
+                      </label>
+                      <div className="relative">
+                        <Calendar className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-[#319795]" />
+                        <input
+                          type="date"
+                          required
+                          value={selectedDate}
+                          onChange={handleDateChange}
+                          className="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3 bg-white border-2 border-[#DCE6C8] focus:border-[#319795] rounded-xl sm:rounded-2xl outline-none font-bold text-xs sm:text-sm text-[#2D3748] transition-all shadow-sm"
                         />
-                        <span className="font-display font-bold text-sm sm:text-base text-[#2D3748]">
-                          Vikend
+                      </div>
+                      {selectedDate && (
+                        <p className="text-[11px] font-bold text-[#319795] mt-1 pl-1">
+                          {currentDayType === "vikend"
+                            ? "✨ Izabran je vikend (Tarifa: 16.000 RSD)"
+                            : "📅 Izabran je radni dan (Tarifa: 13.000 RSD)"}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-1.5 sm:space-y-2">
+                      <label className="text-[11px] sm:text-xs font-black text-[#2D3748]/80 uppercase tracking-wider flex items-center justify-between">
+                        <span className="flex items-center gap-1.5">
+                          <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-[#319795]" />
+                          Izaberite Termin
                         </span>
-                        <span className="text-[10px] sm:text-xs text-[#2D3748]/70 font-semibold leading-tight">
-                          2h igraonice & animacije
-                        </span>
-                        <span className="font-black text-[#2B6CB0] text-xs sm:text-sm mt-0.5">
-                          16.000 RSD
-                        </span>
-                      </button>
+                      </label>
+
+                      {selectedDate ? (
+                        <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
+                          {availableSlots.map((slot) => {
+                            const occupied = isTimeSlotOccupied(slot);
+                            const isSelected = selectedSlot === slot;
+                            return (
+                              <button
+                                key={slot}
+                                type="button"
+                                disabled={occupied}
+                                onClick={() => setSelectedSlot(slot)}
+                                className={`py-2 px-1 sm:py-2.5 sm:px-2 rounded-xl sm:rounded-2xl border-2 font-display font-bold text-[10.5px] sm:text-xs transition-all text-center ${
+                                  occupied
+                                    ? "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
+                                    : isSelected
+                                      ? "border-[#319795] bg-[#319795]/10 text-[#319795] shadow-sm scale-[1.02]"
+                                      : "border-[#DCE6C8] bg-white text-[#2D3748]/70 hover:border-[#319795]/40 hover:bg-[#319795]/5"
+                                }`}
+                              >
+                                {slot} {occupied ? "(Zauzeto)" : "h"}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="h-[60px] sm:h-[88px] flex items-center justify-center p-3 bg-white/60 border-2 border-dashed border-[#DCE6C8] rounded-xl sm:rounded-2xl text-center text-[#2D3748]/40 text-[10px] sm:text-xs font-bold">
+                          Prvo izaberite datum u kalendaru
+                        </div>
+                      )}
+
+                      {slotConflict && (
+                        <p className="text-[11px] font-bold text-red-500 mt-1 pl-1">
+                          ⚠️ Izabrani termin se preklapa sa postojećom
+                          rezervacijom.
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -422,7 +391,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   <div className="space-y-1.5 sm:space-y-2">
                     <label className="text-[11px] sm:text-xs font-black text-[#2D3748]/80 uppercase tracking-wider flex items-center gap-1.5">
                       <PlusCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#319795]" />
-                      2. Dodatno Vreme Proslave (Opciono)
+                      Dodatno Vreme Proslave (Opciono)
                     </label>
                     <div className="grid grid-cols-3 gap-2 sm:gap-3">
                       {[
@@ -451,69 +420,20 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                     </div>
                   </div>
 
-                  {/* 3. Datum i Izbor Sata */}
-                  <div className="grid sm:grid-cols-2 gap-3 sm:gap-5">
-                    <div className="space-y-1.5 sm:space-y-2">
-                      <label className="text-[11px] sm:text-xs font-black text-[#2D3748]/80 uppercase tracking-wider">
-                        Datum (
-                        {dayType === "vikend"
-                          ? "Subota / Nedelja"
-                          : "Ponedeljak – Petak"}
-                        )
-                      </label>
-                      <div className="relative">
-                        <Calendar className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-[#319795]" />
-                        <input
-                          type="date"
-                          required
-                          value={selectedDate}
-                          onChange={handleDateChange}
-                          className={`w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3 bg-white border-2 rounded-xl sm:rounded-2xl outline-none font-bold text-xs sm:text-sm text-[#2D3748] transition-all shadow-sm ${
-                            dateError
-                              ? "border-red-500"
-                              : "border-[#DCE6C8] focus:border-[#319795]"
-                          }`}
-                        />
-                      </div>
-                      {dateError && (
-                        <p className="text-[11px] font-bold text-red-500 mt-1 pl-1">
-                          {dateError}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="space-y-1.5 sm:space-y-2">
-                      <label className="text-[11px] sm:text-xs font-black text-[#2D3748]/80 uppercase tracking-wider">
-                        Izaberite Sat Početka
-                      </label>
-                      <div className="relative">
-                        <Clock className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-[#319795]" />
-                        <select
-                          value={startTime}
-                          onChange={(e) => setStartTime(e.target.value)}
-                          className="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3 bg-white border-2 border-[#DCE6C8] focus:border-[#319795] rounded-xl sm:rounded-2xl outline-none font-bold text-xs sm:text-sm text-[#2D3748] transition-all shadow-sm appearance-none"
-                        >
-                          {AVAILABLE_HOURS.map((hr) => {
-                            const occupied = isTimeSlotOccupied(hr);
-                            return (
-                              <option key={hr} value={hr} disabled={occupied}>
-                                {hr} {occupied ? "(Zauzeto)" : ""}
-                              </option>
-                            );
-                          })}
-                        </select>
-                      </div>
-                      {slotConflict && (
-                        <p className="text-[11px] font-bold text-red-500 mt-1 pl-1">
-                          ⚠️ Izabrani termin preklapa sa postojećom
-                          rezervacijom.
-                        </p>
-                      )}
-                    </div>
+                  {/* Info Note */}
+                  <div className="bg-amber-50/80 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-amber-200/80 flex gap-2.5 sm:gap-3 items-start">
+                    <Info className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 shrink-0 mt-0.5" />
+                    <p className="text-[10.5px] sm:text-xs text-amber-800 font-medium leading-relaxed">
+                      <strong className="font-bold">
+                        Želite dužu proslavu?
+                      </strong>{" "}
+                      Moguće je produžiti termin za 30 minuta ili sat vremena
+                      iznad ili napomenuti Nadi prilikom direktnog dogovora.
+                    </p>
                   </div>
 
-                  {/* 4. Podaci o Roditelju i Detetu */}
-                  <div className="grid sm:grid-cols-2 gap-3 sm:gap-5">
+                  {/* 3. Podaci o Roditelju i Detetu */}
+                  <div className="grid sm:grid-cols-2 gap-3 sm:gap-5 pt-2">
                     <div className="space-y-1.5 sm:space-y-2">
                       <label className="text-[11px] sm:text-xs font-black text-[#2D3748]/80 uppercase tracking-wider">
                         Ime Roditelja
@@ -565,7 +485,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-3 sm:grid-cols-3 gap-2.5 sm:gap-3">
+                    <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
                       <div className="space-y-1.5 sm:space-y-2 col-span-1">
                         <label className="text-[11px] sm:text-xs font-black text-[#2D3748]/80 uppercase tracking-wider">
                           Uzrast
@@ -609,7 +529,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                     </div>
                   </div>
 
-                  {/* Dodatni Zahtevi / Napomene */}
+                  {/* Dodatne Napomene */}
                   <div className="space-y-1.5 sm:space-y-2">
                     <label className="text-[11px] sm:text-xs font-black text-[#2D3748]/80 uppercase tracking-wider">
                       Dodatne Napomene / Specijalni Zahtevi
@@ -639,8 +559,10 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                       </>
                     ) : (
                       <span>
-                        Pošalji Upit (
-                        {calculateTotalPrice().toLocaleString("sr-RS")} RSD)
+                        Pošalji Upit
+                        {selectedDate
+                          ? ` (${calculateTotalPrice().toLocaleString("sr-RS")} RSD)`
+                          : ""}
                       </span>
                     )}
                   </button>
