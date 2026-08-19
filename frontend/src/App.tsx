@@ -36,6 +36,7 @@ export const App: React.FC = () => {
   );
 
   const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState<PartyPackage | null>(
     null,
   );
@@ -96,7 +97,10 @@ export const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F5F2EB] via-[#E8EED8] to-[#DCE6C8] text-[#2C3E2E] overflow-x-hidden">
-      <Navbar onOpenBooking={() => handleOpenBooking()} />
+      <Navbar
+        onOpenBooking={() => handleOpenBooking()}
+        isGalleryOpen={isGalleryOpen}
+      />
 
       <main className="relative z-10">
         <Hero onOpenBooking={() => handleOpenBooking()} />
@@ -142,7 +146,7 @@ export const App: React.FC = () => {
             />
             <MascotSection />
             <Testimonials />
-            <Gallery />
+            <Gallery onLightboxToggle={(isOpen) => setIsGalleryOpen(isOpen)} />
             <CateringSection />
             <Contact />
             <FAQ />

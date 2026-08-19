@@ -166,122 +166,124 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F6F8] text-[#2D3748] pb-20">
+    <div className="min-h-[100dvh] bg-[#F4F6F8] text-[#2D3748] pb-16 sm:pb-20">
       {/* Top Navbar */}
       <header className="bg-[#2D3748] text-white shadow-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="bg-[#319795] p-2 rounded-xl text-white">
-              <ShieldAlert className="w-6 h-6" />
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="bg-[#319795] p-2 rounded-xl text-white shrink-0">
+              <ShieldAlert className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <div>
-              <h1 className="font-display font-bold text-lg sm:text-xl leading-tight">
+            <div className="min-w-0">
+              <h1 className="font-display font-bold text-base sm:text-xl leading-tight truncate">
                 Bambino Admin Panel
               </h1>
-              <p className="text-xs text-white/70">Upravljanje rezervacijama</p>
+              <p className="text-[10px] sm:text-xs text-white/70 truncate hidden xs:block">
+                Upravljanje rezervacijama
+              </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             <button
               onClick={fetchReservations}
-              className="p-2 bg-white/10 hover:bg-white/20 rounded-xl transition-colors text-white"
+              className="p-2 bg-white/10 hover:bg-white/20 active:scale-95 rounded-xl transition-all text-white"
               title="Osveži podatke"
             >
               <RefreshCw
-                className={`w-5 h-5 ${loading ? "animate-spin" : ""}`}
+                className={`w-4 h-4 sm:w-5 sm:h-5 ${loading ? "animate-spin" : ""}`}
               />
             </button>
 
             {/* Arhiva Button */}
             <button
               onClick={onOpenArchive}
-              className="flex items-center gap-2 px-3 py-2 bg-[#319795] hover:bg-[#2B8280] text-white font-bold text-xs sm:text-sm rounded-xl transition-colors shadow-sm"
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 bg-[#319795] hover:bg-[#2B8280] active:scale-95 text-white font-bold text-xs sm:text-sm rounded-xl transition-all shadow-sm"
             >
               <Archive className="w-4 h-4" />
-              <span className="hidden sm:inline">Arhiva</span>
+              <span className="hidden xs:inline">Arhiva</span>
             </button>
 
             <button
               onClick={onLogout}
-              className="flex items-center gap-2 px-3 py-2 bg-red-500/80 hover:bg-red-600 text-white font-bold text-xs sm:text-sm rounded-xl transition-colors"
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 bg-red-500/80 hover:bg-red-600 active:scale-95 text-white font-bold text-xs sm:text-sm rounded-xl transition-all"
             >
               <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">Odjava</span>
+              <span className="hidden xs:inline">Odjava</span>
             </button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+      <main className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
         {/* Metric Analytics Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200">
-            <div className="flex items-center gap-3 text-emerald-600 mb-2">
-              <DollarSign className="w-5 h-5" />
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+          <div className="bg-white p-3.5 sm:p-5 rounded-2xl shadow-sm border border-slate-200">
+            <div className="flex items-center gap-1.5 sm:gap-2 text-emerald-600 mb-1 sm:mb-2">
+              <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 truncate">
                 Ostvareni Prihod
               </span>
             </div>
-            <p className="text-xl sm:text-2xl font-black text-slate-800">
+            <p className="text-base sm:text-2xl font-black text-slate-800 truncate">
               {metrics.confirmedRev.toLocaleString("sr-RS")} RSD
             </p>
-            <p className="text-[11px] font-bold text-emerald-600 mt-1">
+            <p className="text-[10px] sm:text-[11px] font-bold text-emerald-600 mt-0.5 sm:mt-1 truncate">
               Završeno
             </p>
           </div>
 
-          <div className="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200">
-            <div className="flex items-center gap-3 text-purple-600 mb-2">
-              <TrendingUp className="w-5 h-5" />
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+          <div className="bg-white p-3.5 sm:p-5 rounded-2xl shadow-sm border border-slate-200">
+            <div className="flex items-center gap-1.5 sm:gap-2 text-purple-600 mb-1 sm:mb-2">
+              <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 truncate">
                 Očekivani Prihod
               </span>
             </div>
-            <p className="text-xl sm:text-2xl font-black text-slate-800">
+            <p className="text-base sm:text-2xl font-black text-slate-800 truncate">
               {metrics.potentialRev.toLocaleString("sr-RS")} RSD
             </p>
-            <p className="text-[11px] font-bold text-purple-600 mt-1">
-              Uključuje "Na čekanju & Potvrđeno"
+            <p className="text-[10px] sm:text-[11px] font-bold text-purple-600 mt-0.5 sm:mt-1 truncate">
+              Čekanje & Potvrđeno
             </p>
           </div>
 
-          <div className="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200">
-            <div className="flex items-center gap-3 text-amber-500 mb-2">
-              <Clock className="w-5 h-5" />
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+          <div className="bg-white p-3.5 sm:p-5 rounded-2xl shadow-sm border border-slate-200">
+            <div className="flex items-center gap-1.5 sm:gap-2 text-amber-500 mb-1 sm:mb-2">
+              <Clock className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 truncate">
                 Na Čekanju
               </span>
             </div>
-            <p className="text-xl sm:text-2xl font-black text-slate-800">
+            <p className="text-base sm:text-2xl font-black text-slate-800 truncate">
               {metrics.pendingCount}
             </p>
-            <p className="text-[11px] font-bold text-amber-600 mt-1">
+            <p className="text-[10px] sm:text-[11px] font-bold text-amber-600 mt-0.5 sm:mt-1 truncate">
               Zahtevaju potvrdu
             </p>
           </div>
 
-          <div className="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200">
-            <div className="flex items-center gap-3 text-blue-600 mb-2">
-              <Calendar className="w-5 h-5" />
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+          <div className="bg-white p-3.5 sm:p-5 rounded-2xl shadow-sm border border-slate-200">
+            <div className="flex items-center gap-1.5 sm:gap-2 text-blue-600 mb-1 sm:mb-2">
+              <Calendar className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 truncate">
                 Ukupno Termina
               </span>
             </div>
-            <p className="text-xl sm:text-2xl font-black text-slate-800">
+            <p className="text-base sm:text-2xl font-black text-slate-800 truncate">
               {metrics.totalCount}
             </p>
-            <p className="text-[11px] font-bold text-slate-400 mt-1">
-              Svi evidentirani termini
+            <p className="text-[10px] sm:text-[11px] font-bold text-slate-400 mt-0.5 sm:mt-1 truncate">
+              Svi termini
             </p>
           </div>
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex bg-slate-200/80 p-1.5 rounded-2xl max-w-md">
+        <div className="flex bg-slate-200/80 p-1 sm:p-1.5 rounded-2xl w-full sm:max-w-md">
           <button
             onClick={() => setActiveTab("LIST")}
-            className={`flex-1 py-2.5 px-4 rounded-xl font-bold text-xs sm:text-sm transition-all ${
+            className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl font-bold text-xs sm:text-sm transition-all ${
               activeTab === "LIST"
                 ? "bg-white text-slate-800 shadow-sm"
                 : "text-slate-600 hover:text-slate-900"
@@ -291,7 +293,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </button>
           <button
             onClick={() => setActiveTab("BLOCK")}
-            className={`flex-1 py-2.5 px-4 rounded-xl font-bold text-xs sm:text-sm transition-all ${
+            className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl font-bold text-xs sm:text-sm transition-all ${
               activeTab === "BLOCK"
                 ? "bg-white text-slate-800 shadow-sm"
                 : "text-slate-600 hover:text-slate-900"
@@ -303,27 +305,27 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
         {/* TAB 1: Reservation List */}
         {activeTab === "LIST" && (
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {/* Search & Status Filter Bar */}
-            <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-3">
+            <div className="bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col lg:flex-row items-center justify-between gap-3">
               <div className="relative flex-1 w-full">
-                <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Search className="w-4 h-4 sm:w-5 sm:h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 <input
                   type="text"
-                  placeholder="Pretraži po imenu deteta, roditelja ili telefonu..."
+                  placeholder="Pretraži..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#319795]"
+                  className="w-full pl-9 sm:pl-10 pr-4 py-2 sm:py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:border-[#319795] transition-colors"
                 />
               </div>
 
-              <div className="flex gap-2 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 shrink-0">
+              <div className="flex gap-1.5 sm:gap-2 overflow-x-auto w-full lg:w-auto pb-1 lg:pb-0 shrink-0 no-scrollbar">
                 {["ALL", "PENDING", "CONFIRMED", "CANCELLED", "COMPLETED"].map(
                   (st) => (
                     <button
                       key={st}
                       onClick={() => setStatusFilter(st)}
-                      className={`px-3.5 py-2 rounded-xl font-bold text-xs uppercase tracking-wider shrink-0 transition-all ${
+                      className={`flex-1 lg:flex-none px-3 py-2 rounded-xl font-bold text-[11px] sm:text-xs uppercase tracking-wider shrink-0 transition-all ${
                         statusFilter === st
                           ? "bg-[#2D3748] text-white shadow-sm"
                           : "bg-slate-100 text-slate-600 hover:bg-slate-200"
@@ -346,23 +348,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
             {/* Error view */}
             {error && (
-              <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl flex items-center gap-3 text-sm font-bold">
-                <AlertCircle className="w-5 h-5 shrink-0" />
+              <div className="p-3 sm:p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl flex items-center gap-2.5 text-xs sm:text-sm font-bold">
+                <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
                 <span>{error}</span>
               </div>
             )}
 
             {/* Reservation Cards */}
             {filteredReservations.length === 0 ? (
-              <div className="bg-white p-12 text-center rounded-2xl border border-slate-200">
-                <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                <p className="font-bold text-slate-600">
+              <div className="bg-white p-8 sm:p-12 text-center rounded-2xl border border-slate-200">
+                <Calendar className="w-10 h-10 sm:w-12 sm:h-12 text-slate-300 mx-auto mb-2 sm:mb-3" />
+                <p className="font-bold text-slate-600 text-xs sm:text-sm">
                   Nema pronađenih rezervacija.
                 </p>
               </div>
             ) : (
               <>
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   {filteredReservations.map((item: any) => {
                     const rawStart =
                       item.start_time || item.startTime || item.booking_range;
@@ -408,24 +410,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     return (
                       <div
                         key={item.id}
-                        className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4 hover:border-slate-300 transition-colors"
+                        className="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200 space-y-3 sm:space-y-4 hover:border-slate-300 transition-colors"
                       >
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                          <div className="flex items-center gap-2">
-                            <span className="font-display font-black text-lg text-slate-800">
+                        <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-2 border-b border-slate-100 pb-2.5 sm:pb-3">
+                          <div className="flex items-center gap-1.5 text-xs sm:text-base">
+                            <span className="font-display font-black text-slate-800">
                               {formattedDate} ({formattedTime})
                             </span>
                           </div>
                           <StatusBadge status={currentStatus} />
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 text-xs sm:text-sm">
                           {/* Child & Package */}
                           <div>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                            <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">
                               Slavljenik & Paket
                             </p>
-                            <p className="font-extrabold text-slate-800 text-base mt-0.5">
+                            <p className="font-extrabold text-slate-800 text-sm sm:text-base mt-0.5">
                               {childName}{" "}
                               {childAge !== undefined && childAge !== null
                                 ? `(${childAge} god)`
@@ -434,30 +436,30 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             <p className="text-xs font-bold text-[#319795]">
                               {packageName}
                             </p>
-                            <p className="text-xs font-black text-slate-700 mt-1">
+                            <p className="text-xs font-black text-slate-700 mt-0.5 sm:mt-1">
                               {price.toLocaleString("sr-RS")} RSD
                             </p>
                           </div>
 
                           {/* Parent Info & Quick Contact */}
                           <div>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                            <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">
                               Roditelj / Kontakt
                             </p>
                             <p className="font-bold text-slate-800 mt-0.5">
                               {parentName}
                             </p>
-                            <p className="text-xs font-bold text-slate-700 mt-1 flex items-center gap-1.5">
+                            <p className="text-xs font-bold text-slate-700 mt-0.5 sm:mt-1 flex items-center gap-1.5">
                               <Phone className="w-3.5 h-3.5 text-[#319795]" />
                               <span>{phone}</span>
                             </p>
-                            <p className="text-xs text-slate-500 mt-0.5">
+                            <p className="text-xs text-slate-500 mt-0.5 truncate">
                               {item.email}
                             </p>
                             <div className="flex items-center gap-2 mt-2">
                               <a
                                 href={`tel:${phone}`}
-                                className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold rounded-lg flex items-center gap-1 border border-emerald-200"
+                                className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 active:scale-95 text-emerald-700 text-xs font-bold rounded-xl flex items-center gap-1 border border-emerald-200 transition-all"
                               >
                                 <Phone className="w-3.5 h-3.5" />
                                 <span>Pozovi</span>
@@ -466,7 +468,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                 href={`viber://chat?number=${encodeURIComponent(
                                   phone,
                                 )}`}
-                                className="px-2.5 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-bold rounded-lg flex items-center gap-1 border border-purple-200"
+                                className="px-3 py-1.5 bg-purple-50 hover:bg-purple-100 active:scale-95 text-purple-700 text-xs font-bold rounded-xl flex items-center gap-1 border border-purple-200 transition-all"
                               >
                                 <MessageSquare className="w-3.5 h-3.5" />
                                 <span>Viber</span>
@@ -476,10 +478,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                           {/* Notes */}
                           <div>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                            <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">
                               Napomene
                             </p>
-                            <p className="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-100 italic mt-1">
+                            <p className="text-xs text-slate-600 bg-slate-50 p-2 sm:p-2.5 rounded-xl border border-slate-100 italic mt-1">
                               {item.notes ||
                                 "Nema posebnih napomena od strane klijenta."}
                             </p>
@@ -500,7 +502,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                 onClick={() =>
                                   handleStatusChange(item.id, "CONFIRMED")
                                 }
-                                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-colors shadow-sm"
+                                className="flex-1 sm:flex-none px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs rounded-xl transition-all shadow-sm"
                               >
                                 Potvrdi
                               </button>
@@ -508,7 +510,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                 onClick={() =>
                                   handleStatusChange(item.id, "CANCELLED")
                                 }
-                                className="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs rounded-xl transition-colors"
+                                className="flex-1 sm:flex-none px-3.5 py-2 bg-rose-500 hover:bg-rose-600 active:scale-95 text-white font-bold text-xs rounded-xl transition-all"
                               >
                                 Otkaži
                               </button>
@@ -521,7 +523,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                 onClick={() =>
                                   handleStatusChange(item.id, "COMPLETED")
                                 }
-                                className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition-colors shadow-sm"
+                                className="flex-1 sm:flex-none px-3.5 py-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs rounded-xl transition-all shadow-sm"
                               >
                                 Završi
                               </button>
@@ -529,7 +531,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                 onClick={() =>
                                   handleStatusChange(item.id, "CANCELLED")
                                 }
-                                className="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs rounded-xl transition-colors"
+                                className="flex-1 sm:flex-none px-3.5 py-2 bg-rose-500 hover:bg-rose-600 active:scale-95 text-white font-bold text-xs rounded-xl transition-all"
                               >
                                 Otkaži
                               </button>
@@ -541,7 +543,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                               onClick={() =>
                                 handleStatusChange(item.id, "CONFIRMED")
                               }
-                              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-colors shadow-sm"
+                              className="w-full sm:w-auto px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs rounded-xl transition-all shadow-sm"
                             >
                               Vrati u Potvrđeno
                             </button>
@@ -554,22 +556,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                 {/* Pagination Bar */}
                 {totalPages > 1 && (
-                  <div className="flex items-center justify-between bg-white p-4 rounded-2xl shadow-sm border border-slate-200 mt-6">
+                  <div className="flex items-center justify-between gap-2 bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-slate-200 mt-4 sm:mt-6">
                     <button
                       disabled={page === 1}
                       onClick={() => setPage((p) => Math.max(p - 1, 1))}
-                      className="px-4 py-2 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-xs font-bold rounded-xl transition-colors"
+                      className="px-3 sm:px-4 py-2 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-xs font-bold rounded-xl transition-colors shrink-0"
                     >
                       Prethodna
                     </button>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto px-1 no-scrollbar">
                       {Array.from({ length: totalPages }, (_, i) => i + 1).map(
                         (pNum) => (
                           <button
                             key={pNum}
                             onClick={() => setPage(pNum)}
-                            className={`w-8 h-8 rounded-xl font-black text-xs transition-all ${
+                            className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl font-black text-xs shrink-0 transition-all ${
                               page === pNum
                                 ? "bg-[#2D3748] text-white shadow-sm"
                                 : "bg-slate-100 text-slate-600 hover:bg-slate-200"
@@ -586,7 +588,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       onClick={() =>
                         setPage((p) => Math.min(p + 1, totalPages))
                       }
-                      className="px-4 py-2 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-xs font-bold rounded-xl transition-colors"
+                      className="px-3 sm:px-4 py-2 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-xs font-bold rounded-xl transition-colors shrink-0"
                     >
                       Sledeća
                     </button>
@@ -599,19 +601,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
         {/* TAB 2: Block Date / Private Event Tool */}
         {activeTab === "BLOCK" && (
-          <div className="max-w-xl bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+          <div className="max-w-xl bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
             <div>
-              <h2 className="font-display font-bold text-lg text-slate-800">
+              <h2 className="font-display font-bold text-base sm:text-lg text-slate-800">
                 Blokiranje Slobodnog Termina
               </h2>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 mt-0.5">
                 Onemogućite klijentima da rezervišu određeno vreme na sajtu.
               </p>
             </div>
 
             {blockMessage && (
               <div
-                className={`p-3.5 rounded-xl text-xs font-bold ${
+                className={`p-3 sm:p-3.5 rounded-xl text-xs font-bold ${
                   blockMessage.type === "success"
                     ? "bg-emerald-50 text-emerald-700"
                     : "bg-red-50 text-red-700"
@@ -621,9 +623,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </div>
             )}
 
-            <form onSubmit={handleBlockSlot} className="space-y-4">
+            <form
+              onSubmit={handleBlockSlot}
+              className="space-y-3.5 sm:space-y-4"
+            >
               <div>
-                <label className="block text-xs font-bold text-slate-600 uppercase mb-1">
+                <label className="block text-[10px] sm:text-xs font-bold text-slate-600 uppercase mb-1">
                   Datum
                 </label>
                 <input
@@ -631,13 +636,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   required
                   value={blockDate}
                   onChange={(e) => setBlockDate(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#319795]"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:border-[#319795]"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-600 uppercase mb-1">
+                  <label className="block text-[10px] sm:text-xs font-bold text-slate-600 uppercase mb-1">
                     Početak
                   </label>
                   <input
@@ -645,11 +650,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     required
                     value={blockStartTime}
                     onChange={(e) => setBlockStartTime(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#319795]"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:border-[#319795]"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-600 uppercase mb-1">
+                  <label className="block text-[10px] sm:text-xs font-bold text-slate-600 uppercase mb-1">
                     Kraj
                   </label>
                   <input
@@ -657,13 +662,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     required
                     value={blockEndTime}
                     onChange={(e) => setBlockEndTime(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#319795]"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:border-[#319795]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-600 uppercase mb-1">
+                <label className="block text-[10px] sm:text-xs font-bold text-slate-600 uppercase mb-1">
                   Razlog Blokade
                 </label>
                 <input
@@ -672,13 +677,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   placeholder="npr. Privatna proslava, renoviranje..."
                   value={blockReason}
                   onChange={(e) => setBlockReason(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#319795]"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:border-[#319795]"
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full py-3 bg-[#319795] hover:bg-[#2B8280] text-white font-bold rounded-xl shadow-sm transition-colors text-sm"
+                className="w-full py-3 bg-[#319795] hover:bg-[#2B8280] active:scale-[0.98] text-white font-bold rounded-xl shadow-sm transition-all text-xs sm:text-sm"
               >
                 Blokiraj Ovaj Termin
               </button>
@@ -695,31 +700,31 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
   switch (st) {
     case "CONFIRMED":
       return (
-        <span className="px-2.5 py-1 bg-emerald-100 text-emerald-800 font-black text-[11px] uppercase tracking-wider rounded-lg flex items-center gap-1">
-          <CheckCircle2 className="w-3.5 h-3.5" /> Potvrđeno
+        <span className="px-2.5 py-1 bg-emerald-100 text-emerald-800 font-black text-[10px] sm:text-[11px] uppercase tracking-wider rounded-lg flex items-center gap-1 w-fit">
+          <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> Potvrđeno
         </span>
       );
     case "PENDING":
       return (
-        <span className="px-2.5 py-1 bg-amber-100 text-amber-800 font-black text-[11px] uppercase tracking-wider rounded-lg flex items-center gap-1">
-          <Clock className="w-3.5 h-3.5" /> Na Čekanju
+        <span className="px-2.5 py-1 bg-amber-100 text-amber-800 font-black text-[10px] sm:text-[11px] uppercase tracking-wider rounded-lg flex items-center gap-1 w-fit">
+          <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> Na Čekanju
         </span>
       );
     case "COMPLETED":
       return (
-        <span className="px-2.5 py-1 bg-blue-100 text-blue-800 font-black text-[11px] uppercase tracking-wider rounded-lg flex items-center gap-1">
-          <CheckCircle2 className="w-3.5 h-3.5" /> Završeno
+        <span className="px-2.5 py-1 bg-blue-100 text-blue-800 font-black text-[10px] sm:text-[11px] uppercase tracking-wider rounded-lg flex items-center gap-1 w-fit">
+          <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> Završeno
         </span>
       );
     case "CANCELLED":
       return (
-        <span className="px-2.5 py-1 bg-rose-100 text-rose-800 font-black text-[11px] uppercase tracking-wider rounded-lg flex items-center gap-1">
-          <XCircle className="w-3.5 h-3.5" /> Otkazano
+        <span className="px-2.5 py-1 bg-rose-100 text-rose-800 font-black text-[10px] sm:text-[11px] uppercase tracking-wider rounded-lg flex items-center gap-1 w-fit">
+          <XCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> Otkazano
         </span>
       );
     default:
       return (
-        <span className="px-2.5 py-1 bg-slate-100 text-slate-800 font-black text-[11px] uppercase tracking-wider rounded-lg">
+        <span className="px-2.5 py-1 bg-slate-100 text-slate-800 font-black text-[10px] sm:text-[11px] uppercase tracking-wider rounded-lg w-fit">
           {st || "PENDING"}
         </span>
       );

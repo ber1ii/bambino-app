@@ -16,7 +16,7 @@ import { api } from "../../services/api";
 interface AdminArchiveProps {
   token: string;
   onBack?: () => void;
-  onOpenArchive?: () => void; // Made optional
+  onOpenArchive?: () => void;
 }
 
 export const AdminArchive: React.FC<AdminArchiveProps> = ({
@@ -139,117 +139,117 @@ export const AdminArchive: React.FC<AdminArchiveProps> = ({
   }, [filteredArchive]);
 
   return (
-    <div className="min-h-screen bg-[#F4F6F8] text-[#2D3748] pb-20">
+    <div className="min-h-[100dvh] bg-[#F4F6F8] text-[#2D3748] pb-16 sm:pb-20">
       {/* Header */}
       <header className="bg-[#2D3748] text-white shadow-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="bg-[#319795] p-2 rounded-xl text-white">
-              <Archive className="w-6 h-6" />
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="bg-[#319795] p-2 rounded-xl text-white shrink-0">
+              <Archive className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <div>
-              <h1 className="font-display font-bold text-lg sm:text-xl leading-tight">
+            <div className="min-w-0">
+              <h1 className="font-display font-bold text-base sm:text-xl leading-tight truncate">
                 Arhiva Rezervacija
               </h1>
-              <p className="text-xs text-white/70">
+              <p className="text-[10px] sm:text-xs text-white/70 truncate hidden xs:block">
                 Pregled i istorija svih prošlih proslava
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             <button
               onClick={fetchArchive}
-              className="p-2 bg-white/10 hover:bg-white/20 rounded-xl transition-colors text-white"
+              className="p-2 bg-white/10 hover:bg-white/20 active:scale-95 rounded-xl transition-all text-white"
               title="Osveži podatke"
             >
               <RefreshCw
-                className={`w-5 h-5 ${loading ? "animate-spin" : ""}`}
+                className={`w-4 h-4 sm:w-5 sm:h-5 ${loading ? "animate-spin" : ""}`}
               />
             </button>
             {onBack && (
               <button
                 onClick={onBack}
-                className="px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white font-bold text-xs sm:text-sm rounded-xl transition-colors"
+                className="px-3 py-2 bg-white/10 hover:bg-white/20 active:scale-95 text-white font-bold text-xs sm:text-sm rounded-xl transition-all"
               >
-                Nazad na Dashboard
+                Nazad
               </button>
             )}
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+      <main className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
         {/* Archive Metrics */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-            <div className="flex items-center gap-3 text-emerald-600 mb-2">
-              <DollarSign className="w-5 h-5" />
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+          <div className="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200">
+            <div className="flex items-center gap-2 text-emerald-600 mb-1 sm:mb-2">
+              <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">
                 Ukupan Arhiviran Prihod
               </span>
             </div>
-            <p className="text-2xl font-black text-slate-800">
+            <p className="text-xl sm:text-2xl font-black text-slate-800">
               {archiveMetrics.totalRevenue.toLocaleString("sr-RS")} RSD
             </p>
-            <p className="text-[11px] font-bold text-emerald-600 mt-1">
+            <p className="text-[10px] sm:text-[11px] font-bold text-emerald-600 mt-0.5 sm:mt-1">
               Iz realizovanih rođendana
             </p>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-            <div className="flex items-center gap-3 text-blue-600 mb-2">
-              <CheckCircle2 className="w-5 h-5" />
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+          <div className="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200">
+            <div className="flex items-center gap-2 text-blue-600 mb-1 sm:mb-2">
+              <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">
                 Završene Proslave
               </span>
             </div>
-            <p className="text-2xl font-black text-slate-800">
+            <p className="text-xl sm:text-2xl font-black text-slate-800">
               {archiveMetrics.completedCount}
             </p>
-            <p className="text-[11px] font-bold text-blue-600 mt-1">
+            <p className="text-[10px] sm:text-[11px] font-bold text-blue-600 mt-0.5 sm:mt-1">
               Uspešno održani termini
             </p>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-            <div className="flex items-center gap-3 text-rose-500 mb-2">
-              <XCircle className="w-5 h-5" />
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+          <div className="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200">
+            <div className="flex items-center gap-2 text-rose-500 mb-1 sm:mb-2">
+              <XCircle className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">
                 Otkazani Termini
               </span>
             </div>
-            <p className="text-2xl font-black text-slate-800">
+            <p className="text-xl sm:text-2xl font-black text-slate-800">
               {archiveMetrics.cancelledCount}
             </p>
-            <p className="text-[11px] font-bold text-rose-500 mt-1">
+            <p className="text-[10px] sm:text-[11px] font-bold text-rose-500 mt-0.5 sm:mt-1">
               Evidentirano u istoriji
             </p>
           </div>
         </div>
 
         {/* Filter Controls Bar */}
-        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+        <div className="bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
           <div className="flex flex-col lg:flex-row items-center justify-between gap-3">
             {/* Search Input */}
             <div className="relative flex-1 w-full">
-              <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search className="w-4 h-4 sm:w-5 sm:h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
               <input
                 type="text"
-                placeholder="Pretraži arhivu po detetu, roditelju ili telefonu..."
+                placeholder="Pretraži arhivu..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#319795]"
+                className="w-full pl-9 sm:pl-10 pr-4 py-2 sm:py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:border-[#319795] transition-colors"
               />
             </div>
 
             {/* Status Selector */}
-            <div className="flex gap-2 overflow-x-auto w-full lg:w-auto pb-1 lg:pb-0 shrink-0">
+            <div className="flex gap-1.5 sm:gap-2 w-full lg:w-auto overflow-x-auto pb-0.5 lg:pb-0 shrink-0">
               {["ALL", "COMPLETED", "CANCELLED"].map((st) => (
                 <button
                   key={st}
                   onClick={() => setStatusFilter(st)}
-                  className={`px-3.5 py-2 rounded-xl font-bold text-xs uppercase tracking-wider shrink-0 transition-all ${
+                  className={`flex-1 lg:flex-none px-3 py-2 rounded-xl font-bold text-[11px] sm:text-xs uppercase tracking-wider shrink-0 transition-all ${
                     statusFilter === st
                       ? "bg-[#2D3748] text-white shadow-sm"
                       : "bg-slate-100 text-slate-600 hover:bg-slate-200"
@@ -266,16 +266,16 @@ export const AdminArchive: React.FC<AdminArchiveProps> = ({
           </div>
 
           {/* Date Dropdowns */}
-          <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-slate-100 text-xs font-bold text-slate-600">
-            <div className="flex items-center gap-1.5 text-slate-400">
-              <Filter className="w-4 h-4" />
-              <span>Period:</span>
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:gap-3 pt-2 border-t border-slate-100 text-xs font-bold text-slate-600">
+            <div className="col-span-2 sm:col-span-1 flex items-center gap-1.5 text-slate-400">
+              <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="text-[11px] sm:text-xs">Period:</span>
             </div>
 
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
-              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#319795]"
+              className="w-full sm:w-auto px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#319795]"
             >
               <option value="ALL">Sve Godine</option>
               {availableYears.map((yr) => (
@@ -288,7 +288,7 @@ export const AdminArchive: React.FC<AdminArchiveProps> = ({
             <select
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
-              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#319795]"
+              className="w-full sm:w-auto px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#319795]"
             >
               <option value="ALL">Svi Meseci</option>
               <option value="1">Januar</option>
@@ -311,9 +311,9 @@ export const AdminArchive: React.FC<AdminArchiveProps> = ({
                   setSelectedYear("ALL");
                   setSelectedMonth("ALL");
                 }}
-                className="text-[#319795] hover:underline ml-auto"
+                className="col-span-2 sm:col-span-1 text-[#319795] hover:underline text-[11px] sm:text-xs sm:ml-auto text-left"
               >
-                Poništi filtere datuma
+                Poništi filtere
               </button>
             )}
           </div>
@@ -321,17 +321,17 @@ export const AdminArchive: React.FC<AdminArchiveProps> = ({
 
         {/* Error View */}
         {error && (
-          <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl flex items-center gap-3 text-sm font-bold">
-            <AlertCircle className="w-5 h-5 shrink-0" />
+          <div className="p-3 sm:p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl flex items-center gap-2.5 text-xs sm:text-sm font-bold">
+            <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         {/* Archive List */}
         {filteredArchive.length === 0 ? (
-          <div className="bg-white p-12 text-center rounded-2xl border border-slate-200">
-            <Archive className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <p className="font-bold text-slate-600">
+          <div className="bg-white p-8 sm:p-12 text-center rounded-2xl border border-slate-200">
+            <Archive className="w-10 h-10 sm:w-12 sm:h-12 text-slate-300 mx-auto mb-2 sm:mb-3" />
+            <p className="font-bold text-slate-600 text-xs sm:text-sm">
               Nema arhiviranih stavki za izabrane filtere.
             </p>
           </div>
@@ -375,17 +375,17 @@ export const AdminArchive: React.FC<AdminArchiveProps> = ({
                 return (
                   <div
                     key={item.id}
-                    className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-3 hover:border-slate-300 transition-colors"
+                    className="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200 space-y-3 hover:border-slate-300 transition-colors"
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-[#319795]" />
+                    <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+                      <div className="flex items-center gap-1.5 text-xs sm:text-sm">
+                        <Calendar className="w-3.5 h-3.5 text-[#319795] shrink-0" />
                         <span className="font-display font-black text-slate-800">
                           {formattedDate} ({formattedTime})
                         </span>
                       </div>
                       <span
-                        className={`px-2.5 py-1 font-black text-[11px] uppercase tracking-wider rounded-lg flex items-center gap-1 w-fit ${
+                        className={`px-2 py-0.5 font-black text-[10px] sm:text-[11px] uppercase tracking-wider rounded-lg flex items-center gap-1 w-fit ${
                           isCompleted
                             ? "bg-blue-100 text-blue-800"
                             : "bg-rose-100 text-rose-800"
@@ -393,23 +393,23 @@ export const AdminArchive: React.FC<AdminArchiveProps> = ({
                       >
                         {isCompleted ? (
                           <>
-                            <CheckCircle2 className="w-3.5 h-3.5" /> Završeno
+                            <CheckCircle2 className="w-3 h-3" /> Završeno
                           </>
                         ) : (
                           <>
-                            <XCircle className="w-3.5 h-3.5" /> Otkazano
+                            <XCircle className="w-3 h-3" /> Otkazano
                           </>
                         )}
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 text-xs sm:text-sm">
                       {/* Child & Package */}
                       <div>
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                           Slavljenik & Paket
                         </p>
-                        <p className="font-extrabold text-slate-800 text-base mt-0.5">
+                        <p className="font-extrabold text-slate-800 text-sm sm:text-base mt-0.5">
                           {childName}{" "}
                           {childAge !== undefined && childAge !== null
                             ? `(${childAge} god)`
@@ -418,34 +418,37 @@ export const AdminArchive: React.FC<AdminArchiveProps> = ({
                         <p className="text-xs font-bold text-[#319795]">
                           {packageName}
                         </p>
-                        <p className="text-xs font-black text-slate-700 mt-1">
+                        <p className="text-xs font-black text-slate-700 mt-0.5">
                           {price.toLocaleString("sr-RS")} RSD
                         </p>
                       </div>
 
                       {/* Parent / Contact */}
                       <div>
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                           Roditelj / Kontakt
                         </p>
                         <p className="font-bold text-slate-800 mt-0.5">
                           {parentName}
                         </p>
-                        <p className="text-xs font-bold text-slate-700 mt-1 flex items-center gap-1.5">
+                        <a
+                          href={`tel:${phone}`}
+                          className="text-xs font-bold text-slate-700 mt-1 inline-flex items-center gap-1.5 hover:text-[#319795]"
+                        >
                           <Phone className="w-3.5 h-3.5 text-[#319795]" />
                           <span>{phone}</span>
-                        </p>
-                        <p className="text-xs text-slate-500 mt-0.5">
+                        </a>
+                        <p className="text-xs text-slate-500 mt-0.5 truncate">
                           {item.email}
                         </p>
                       </div>
 
                       {/* Notes */}
                       <div>
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                           Beleške / Napomene
                         </p>
-                        <p className="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-100 italic mt-1">
+                        <p className="text-xs text-slate-600 bg-slate-50 p-2 sm:p-2.5 rounded-xl border border-slate-100 italic mt-1">
                           {item.notes || "Nema sačuvanih napomena."}
                         </p>
                       </div>
@@ -457,22 +460,22 @@ export const AdminArchive: React.FC<AdminArchiveProps> = ({
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-between bg-white p-4 rounded-2xl shadow-sm border border-slate-200 mt-6">
+              <div className="flex items-center justify-between gap-2 bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-slate-200 mt-4 sm:mt-6">
                 <button
                   disabled={page === 1}
                   onClick={() => setPage((p) => Math.max(p - 1, 1))}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-xs font-bold rounded-xl transition-colors"
+                  className="px-3 sm:px-4 py-2 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-xs font-bold rounded-xl transition-colors shrink-0"
                 >
                   Prethodna
                 </button>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto px-1 no-scrollbar">
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(
                     (pNum) => (
                       <button
                         key={pNum}
                         onClick={() => setPage(pNum)}
-                        className={`w-8 h-8 rounded-xl font-black text-xs transition-all ${
+                        className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl font-black text-xs shrink-0 transition-all ${
                           page === pNum
                             ? "bg-[#2D3748] text-white shadow-sm"
                             : "bg-slate-100 text-slate-600 hover:bg-slate-200"
@@ -487,7 +490,7 @@ export const AdminArchive: React.FC<AdminArchiveProps> = ({
                 <button
                   disabled={page === totalPages}
                   onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-xs font-bold rounded-xl transition-colors"
+                  className="px-3 sm:px-4 py-2 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-xs font-bold rounded-xl transition-colors shrink-0"
                 >
                   Sledeća
                 </button>

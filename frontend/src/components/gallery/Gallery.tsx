@@ -6,6 +6,10 @@ import zamena1 from "../../photos/zamena_za_1.jpg";
 import zamena2 from "../../photos/zamena_za_2.jpg";
 import kucica from "../../photos/kucica.jpg";
 
+interface GalleryProps {
+  onLightboxToggle?: (isOpen: boolean) => void;
+}
+
 const OTHER_NUMBERS = [
   15, 16, 17, 18, 19, 20, 21, 22, 25, 26, 28, 29,
 ];
@@ -45,10 +49,14 @@ const HIGHLIGHTS = [
   },
 ];
 
-export const Gallery: React.FC = () => {
+export const Gallery: React.FC<GalleryProps> = ({ onLightboxToggle }) => {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(
     null,
   );
+
+  useEffect(() => {
+    onLightboxToggle?.(selectedImageIndex !== null);
+  }, [selectedImageIndex, onLightboxToggle]);
 
   const openLightbox = (highlightSrc: string) => {
     const filename = highlightSrc.split("/").pop()?.split("?")[0];
