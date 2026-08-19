@@ -25,6 +25,7 @@ interface BookingModalProps {
 }
 
 const springConfig = { type: "spring", stiffness: 300, damping: 30 };
+const CLEANING_BUFFER_MINS = 15; // Buffer to prevent back-to-back bookings with zero prep time
 
 const toLocalISOString = (dateStr: string, timeStr: string) => {
   const date = new Date(`${dateStr}T${timeStr}:00`);
@@ -72,10 +73,52 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
   const currentDayType = getDayType(selectedDate);
 
-  const availableSlots =
-    currentDayType === "vikend"
-      ? ["10:30 - 12:30", "13:00 - 15:00", "15:30 - 17:30", "18:00 - 20:00"]
-      : ["15:30 - 17:30", "18:00 - 20:00"];
+  // Compute dynamic slot times adjusted for preceding cleaning buffers
+  const getDynamicSlots = () => {
+    const baseSlots =
+      currentDayType === "vikend"
+        ? ["10:30 - 12:30", "13:00 - 15:00", "15:30 - 17:30", "18:00 - 20:00"]
+        : ["15:30 - 17:30", "18:00 - 20:00"];
+
+    if (!selectedDate || reservedSlots.length === 0) {
+      return baseSlots.map((s) => ({ slotString: s, isShifted: false }));
+    }
+
+    return baseSlots.map((slot) => {
+      const [baseStartStr, baseEndStr] = slot.split(" - ");
+      const baseStart = new Date(`${selectedDate}T${baseStartStr}:00`);
+      const baseEnd = new Date(`${selectedDate}T${baseEndStr}:00`);
+
+      let adjustedStart = new Date(baseStart);
+
+      // Check if any reservation's end time + buffer spills into this slot's base start
+      reservedSlots.forEach((s) => {
+        const resEndWithBuffer = new Date(
+          new Date(s.end_time).getTime() + CLEANING_BUFFER_MINS * 60 * 1000,
+        );
+        if (resEndWithBuffer > adjustedStart && resEndWithBuffer < baseEnd) {
+          adjustedStart = resEndWithBuffer;
+        }
+      });
+
+      if (adjustedStart.getTime() === baseStart.getTime()) {
+        return { slotString: slot, isShifted: false };
+      }
+
+      // Maintain base slot duration (2h) from adjusted start
+      const baseDurationMs = baseEnd.getTime() - baseStart.getTime();
+      const adjustedEnd = new Date(adjustedStart.getTime() + baseDurationMs);
+
+      const formatTime = (d: Date) => {
+        const h = String(d.getHours()).padStart(2, "0");
+        const m = String(d.getMinutes()).padStart(2, "0");
+        return `${h}:${m}`;
+      };
+
+      const slotString = `${formatTime(adjustedStart)} - ${formatTime(adjustedEnd)}`;
+      return { slotString, isShifted: true };
+    });
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -114,14 +157,19 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     const [startStr] = slot.split(" - ");
     const proposedStart = new Date(`${date}T${startStr}:00`);
     const totalDuration = 120 + extraMins;
-    const proposedEnd = new Date(
-      proposedStart.getTime() + totalDuration * 60 * 1000,
+    const proposedEndWithBuffer = new Date(
+      proposedStart.getTime() +
+        (totalDuration + CLEANING_BUFFER_MINS) * 60 * 1000,
     );
 
     const hasConflict = slots.some((s) => {
       const slotStart = new Date(s.start_time);
-      const slotEnd = new Date(s.end_time);
-      return proposedStart < slotEnd && proposedEnd > slotStart;
+      const slotEndWithBuffer = new Date(
+        new Date(s.end_time).getTime() + CLEANING_BUFFER_MINS * 60 * 1000,
+      );
+      return (
+        proposedStart < slotEndWithBuffer && proposedEndWithBuffer > slotStart
+      );
     });
 
     setSlotConflict(hasConflict);
@@ -129,16 +177,16 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
   const isTimeSlotOccupied = (slot: string) => {
     if (!selectedDate || reservedSlots.length === 0) return false;
-    const [startStr] = slot.split(" - ");
+    const [startStr, endStr] = slot.split(" - ");
     const checkStart = new Date(`${selectedDate}T${startStr}:00`);
-    const checkEnd = new Date(
-      checkStart.getTime() + calculateTotalDuration() * 60 * 1000,
-    );
+    const checkEnd = new Date(`${selectedDate}T${endStr}:00`);
 
     return reservedSlots.some((s) => {
       const slotStart = new Date(s.start_time);
-      const slotEnd = new Date(s.end_time);
-      return checkStart < slotEnd && checkEnd > slotStart;
+      const slotEndWithBuffer = new Date(
+        new Date(s.end_time).getTime() + CLEANING_BUFFER_MINS * 60 * 1000,
+      );
+      return checkStart < slotEndWithBuffer && checkEnd > slotStart;
     });
   };
 
@@ -233,6 +281,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       setIsSubmitting(false);
     }
   };
+
+  const dynamicSlots = getDynamicSlots();
 
   return (
     <AnimatePresence>
@@ -350,15 +400,15 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
                       {selectedDate ? (
                         <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
-                          {availableSlots.map((slot) => {
-                            const occupied = isTimeSlotOccupied(slot);
-                            const isSelected = selectedSlot === slot;
+                          {dynamicSlots.map(({ slotString }) => {
+                            const occupied = isTimeSlotOccupied(slotString);
+                            const isSelected = selectedSlot === slotString;
                             return (
                               <button
-                                key={slot}
+                                key={slotString}
                                 type="button"
                                 disabled={occupied}
-                                onClick={() => setSelectedSlot(slot)}
+                                onClick={() => setSelectedSlot(slotString)}
                                 className={`py-2 px-1 sm:py-2.5 sm:px-2 rounded-xl sm:rounded-2xl border-2 font-display font-bold text-[10.5px] sm:text-xs transition-all text-center ${
                                   occupied
                                     ? "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
@@ -367,7 +417,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                                       : "border-[#DCE6C8] bg-white text-[#2D3748]/70 hover:border-[#319795]/40 hover:bg-[#319795]/5"
                                 }`}
                               >
-                                {slot} {occupied ? "(Zauzeto)" : "h"}
+                                {slotString} {occupied ? "(Zauzeto)" : "h"}
                               </button>
                             );
                           })}
