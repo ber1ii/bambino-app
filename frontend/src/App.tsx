@@ -18,8 +18,23 @@ import treeTop from "./photos/tree-top.png";
 import treeTrunk from "./photos/tree-trunk.png";
 import treeRoot from "./photos/tree-root.png";
 import { Contact } from "./components/contact/Contact";
+import { MascotSection } from "./components/mascot/MascotSection";
+
+// Admin Imports
+import { AdminDashboard } from "./components/admin/AdminDashboard";
+import { AdminArchive } from "./components/admin/AdminArchive";
+import { AdminLogin } from "./components/admin/AdminLogin";
+import { CateringSection } from "./components/contact/CateringSection";
 
 export const App: React.FC = () => {
+  const [isAdminRoute, setIsAdminRoute] = useState(false);
+  const [adminPin, setAdminPin] = useState<string | null>(
+    localStorage.getItem("bambino_admin_pin"),
+  );
+  const [adminView, setAdminView] = useState<"dashboard" | "archive">(
+    "dashboard",
+  );
+
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState<PartyPackage | null>(
     null,
@@ -27,11 +42,50 @@ export const App: React.FC = () => {
   const [packages, setPackages] = useState<PartyPackage[]>([]);
 
   useEffect(() => {
+    // Check if URL is /admin
+    if (window.location.pathname.startsWith("/admin")) {
+      setIsAdminRoute(true);
+    }
+
     api
       .getPackages()
       .then((pkgs) => setPackages(pkgs.map(toPartyPackage)))
       .catch((err) => console.error("Failed to load packages:", err));
   }, []);
+
+  const handleAdminLoginSuccess = (pin: string) => {
+    localStorage.setItem("bambino_admin_pin", pin);
+    setAdminPin(pin);
+  };
+
+  const handleAdminLogout = () => {
+    localStorage.removeItem("bambino_admin_pin");
+    setAdminPin(null);
+  };
+
+  // If on /admin route, render Admin views
+  if (isAdminRoute) {
+    if (!adminPin) {
+      return <AdminLogin onSuccess={handleAdminLoginSuccess} />;
+    }
+
+    if (adminView === "archive") {
+      return (
+        <AdminArchive
+          token={adminPin}
+          onBack={() => setAdminView("dashboard")}
+        />
+      );
+    }
+
+    return (
+      <AdminDashboard
+        token={adminPin}
+        onLogout={handleAdminLogout}
+        onOpenArchive={() => setAdminView("archive")}
+      />
+    );
+  }
 
   const handleOpenBooking = (pkg?: PartyPackage) => {
     if (pkg) setSelectedPackage(pkg);
@@ -48,7 +102,6 @@ export const App: React.FC = () => {
         <Hero onOpenBooking={() => handleOpenBooking()} />
 
         <div className="relative">
-          {/* Background Tree Graphic - adjusted sizing & opacity for mobile */}
           <div className="absolute -left-16 sm:left-0 top-0 bottom-0 w-40 sm:w-80 md:w-[480px] lg:w-[540px] pointer-events-none z-0 opacity-25 sm:opacity-40 mix-blend-multiply flex flex-col">
             <div
               className="w-full shrink-0 relative z-10 translate-x-[9%]"
@@ -59,7 +112,6 @@ export const App: React.FC = () => {
                 backgroundRepeat: "no-repeat",
               }}
             />
-
             <div
               className="w-full flex-grow bg-repeat-y bg-top relative z-0 -mt-1 -mb-1"
               style={{
@@ -67,7 +119,6 @@ export const App: React.FC = () => {
                 backgroundSize: "100% auto",
               }}
             />
-
             <div
               className="w-full shrink-0 relative z-10 translate-x-[10%]"
               style={{
@@ -84,14 +135,15 @@ export const App: React.FC = () => {
             <About />
             <OwnerMessage />
             <HowItWorks />
-            
+
             <PackagesSection
               packages={packages}
               onSelectPackage={(pkg?: PartyPackage) => handleOpenBooking(pkg)}
             />
-
+            <MascotSection />
             <Testimonials />
             <Gallery />
+            <CateringSection />
             <Contact />
             <FAQ />
             <Footer />

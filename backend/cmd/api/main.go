@@ -98,6 +98,7 @@ func main() {
 			r.Use(authmiddleware.RequireAuth)
 			r.Get("/admin/reservations", resHandler.GetAllReservations)
 			r.Patch("/admin/reservations/{id}/status", resHandler.UpdateReservationStatus)
+			r.Post("/admin/block-slot", resHandler.BlockTimeSlot) // Added
 		})
 	})
 

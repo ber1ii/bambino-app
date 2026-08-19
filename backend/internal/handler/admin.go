@@ -1,8 +1,9 @@
 package handler
 
 import (
-	"bambino-backend/internal/config"
-	"bambino-backend/internal/repository"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"net/http"
 	"os"
@@ -10,42 +11,51 @@ import (
 	"strings"
 	"time"
 
+	"bambino-backend/internal/config"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/golang-jwt/jwt/v5"
-	"golang.org/x/crypto/bcrypt"
 )
 
-type LoginPayload struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+type PinLoginPayload struct {
+	Pin string `json:"pin"`
+}
+
+type BlockSlotPayload struct {
+	Date      string `json:"date"`
+	StartTime string `json:"startTime"`
+	EndTime   string `json:"endTime"`
+	Reason    string `json:"reason"`
+}
+
+func getPepperedPIN(pin string) string {
+	pepper := os.Getenv("ADMIN_PEPPER")
+	h := hmac.New(sha256.New, []byte(pepper))
+	h.Write([]byte(pin))
+	return hex.EncodeToString(h.Sum(nil))
 }
 
 func (h *ReservationHandler) Login(w http.ResponseWriter, r *http.Request) {
-	var payload LoginPayload
+	var payload PinLoginPayload
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		http.Error(w, `{"error":"invalid request"}`, http.StatusBadRequest)
 		return
 	}
 
-	if strings.TrimSpace(payload.Email) == "" || payload.Password == "" {
-		http.Error(w, `{"error":"email and password required"}`, http.StatusBadRequest)
-		return
+	expectedPin := os.Getenv("ADMIN_PIN")
+	if expectedPin == "" {
+		expectedPin = "123456" // Default dev fallback
 	}
 
-	hash, err := h.repo.GetAdminHash(r.Context(), payload.Email)
-	if err != nil || bcrypt.CompareHashAndPassword([]byte(hash), []byte(payload.Password)) != nil {
-		http.Error(w, `{"error":"invalid credentials"}`, http.StatusUnauthorized)
+	if getPepperedPIN(payload.Pin) != getPepperedPIN(expectedPin) {
+		http.Error(w, `{"error":"invalid pin"}`, http.StatusUnauthorized)
 		return
 	}
 
 	secret := config.JWTSecret()
-	if len(secret) == 0 {
-		secret = []byte("super-secret-development-key")
-	}
-
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": payload.Email,
-		"exp": time.Now().Add(24 * time.Hour).Unix(),
+		"admin": true,
+		"exp":   time.Now().Add(24 * time.Hour).Unix(),
 	})
 
 	tokenString, err := token.SignedString(secret)
@@ -55,19 +65,21 @@ func (h *ReservationHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	isProd := os.Getenv("ENV") == "production"
-
 	http.SetCookie(w, &http.Cookie{
 		Name:     "admin_token",
 		Value:    tokenString,
 		Expires:  time.Now().Add(24 * time.Hour),
 		HttpOnly: true,
-		Secure:   isProd, // true in production (requires HTTPS)
+		Secure:   isProd,
 		Path:     "/",
 		SameSite: http.SameSiteStrictMode,
 	})
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte(`{"message":"logged in"}`))
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "logged in",
+		"token":   tokenString,
+	})
 }
 
 func parsePagination(r *http.Request) (limit, offset int) {
@@ -86,18 +98,34 @@ func parsePagination(r *http.Request) (limit, offset int) {
 }
 
 func (h *ReservationHandler) GetAllReservations(w http.ResponseWriter, r *http.Request) {
-	limit, offset := parsePagination(r)
-	reservations, err := h.repo.GetAllReservations(r.Context(), limit, offset)
+	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
+	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 || limit > 50 {
+		limit = 10
+	} // podrazumevano 10 po strani
+
+	reservations, totalCount, err := h.repo.GetAllReservationsPaginated(r.Context(), page, limit)
 	if err != nil {
 		http.Error(w, `{"error":"failed to fetch reservations"}`, http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	if reservations == nil {
-		reservations = []repository.Reservation{}
+	totalPages := (totalCount + limit - 1) / limit
+
+	response := map[string]interface{}{
+		"data":        reservations,
+		"page":        page,
+		"limit":       limit,
+		"total_count": totalCount,
+		"total_pages": totalPages,
 	}
-	json.NewEncoder(w).Encode(reservations)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }
 
 func (h *ReservationHandler) UpdateReservationStatus(w http.ResponseWriter, r *http.Request) {
@@ -111,18 +139,47 @@ func (h *ReservationHandler) UpdateReservationStatus(w http.ResponseWriter, r *h
 		return
 	}
 
-	var validStatuses = map[string]bool{"pending": true, "confirmed": true, "cancelled": true}
+	status := strings.ToLower(strings.TrimSpace(payload.Status))
+	var validStatuses = map[string]bool{
+		"pending":   true,
+		"confirmed": true,
+		"completed": true,
+		"cancelled": true,
+	}
 
-	if !validStatuses[payload.Status] {
+	if !validStatuses[status] {
 		http.Error(w, `{"error":"invalid status value"}`, http.StatusBadRequest)
 		return
 	}
 
-	if err := h.repo.UpdateReservationStatus(r.Context(), id, payload.Status); err != nil {
+	if err := h.repo.UpdateReservationStatus(r.Context(), id, status); err != nil {
 		http.Error(w, `{"error":"failed to update status"}`, http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(`{"message":"status updated"}`))
+}
+
+func (h *ReservationHandler) BlockTimeSlot(w http.ResponseWriter, r *http.Request) {
+	var payload BlockSlotPayload
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		http.Error(w, `{"error":"invalid payload"}`, http.StatusBadRequest)
+		return
+	}
+
+	if payload.Date == "" || payload.StartTime == "" || payload.EndTime == "" {
+		http.Error(w, `{"error":"date, startTime, and endTime are required"}`, http.StatusBadRequest)
+		return
+	}
+
+	err := h.repo.BlockTimeSlot(r.Context(), payload.Date, payload.StartTime, payload.EndTime, payload.Reason)
+	if err != nil {
+		http.Error(w, `{"error":"failed to block time slot"}`, http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(`{"message":"time slot blocked successfully"}`))
 }

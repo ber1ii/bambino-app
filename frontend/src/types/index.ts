@@ -10,15 +10,29 @@ export interface PartyPackage {
   color: string;
 }
 
-export interface BookingDetails {
+export type ReservationStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED' | 'BLOCKED';
+
+export interface AdminReservation {
+  id: string;
   packageId: string;
-  date: string;
-  timeSlot: string;
+  packageName: string;
+  parentName: string;
   childName: string;
   childAge: number;
-  parentName: string;
-  parentEmail: string;
-  parentPhone: string;
-  additionalKids: number;
+  phone: string;
+  email: string;
+  startTime: string;
+  endTime: string;
+  price: number;
   notes?: string;
+  internalNotes?: string;
+  status: ReservationStatus;
+  createdAt: string;
+}
+
+export interface BlockSlotPayload {
+  date: string;       // YYYY-MM-DD
+  startTime: string;  // HH:MM
+  endTime: string;    // HH:MM
+  reason: string;
 }

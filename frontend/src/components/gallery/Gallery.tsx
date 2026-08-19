@@ -2,13 +2,20 @@ import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ZoomIn, ChevronLeft, ChevronRight } from "lucide-react";
 
-const PHOTO_NUMBERS = [
-  2, 12, 15, 16, 17, 18, 19, 20, 21, 22, 25, 26, 27, 28, 29,
+import zamena1 from "../../photos/zamena_za_1.jpg";
+import zamena2 from "../../photos/zamena_za_2.jpg";
+import kucica from "../../photos/kucica.jpg";
+
+const OTHER_NUMBERS = [
+  15, 16, 17, 18, 19, 20, 21, 22, 25, 26, 28, 29,
 ];
 
-const ALL_IMAGES = PHOTO_NUMBERS.map((num) => {
-  return new URL(`../../photos/${num}.jpeg`, import.meta.url).href;
-});
+const ALL_IMAGES = [
+  zamena1,
+  zamena2,
+  ...OTHER_NUMBERS.map((num) => new URL(`../../photos/${num}.jpeg`, import.meta.url).href),
+  kucica,
+];
 
 const HIGHLIGHTS = [
   {
@@ -17,8 +24,8 @@ const HIGHLIGHTS = [
     span: "md:col-span-2 md:row-span-2",
   },
   {
-    src: new URL("../../photos/29.jpeg", import.meta.url).href,
-    alt: "Zelena kućica na drvetu",
+    src: kucica,
+    alt: "Zelena kućica za igru",
     span: "md:col-span-1 md:row-span-1",
   },
   {
@@ -27,7 +34,7 @@ const HIGHLIGHTS = [
     span: "md:col-span-1 md:row-span-1",
   },
   {
-    src: new URL("../../photos/27.jpeg", import.meta.url).href,
+    src: zamena1,
     alt: "Igraonica detalj",
     span: "md:col-span-1 md:row-span-1",
   },
@@ -121,40 +128,30 @@ export const Gallery: React.FC = () => {
         </div>
       </div>
 
-      {/* Lightbox Modal sa strelicama */}
+      {/* Lightbox Modal */}
       <AnimatePresence>
         {selectedImageIndex !== null && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 bg-[#2D3748]/95 backdrop-blur-md select-none"
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-[#2D3748]/95 backdrop-blur-md select-none"
             onClick={() => setSelectedImageIndex(null)}
           >
-            {/* Dugme za zatvaranje */}
-            <button
-              type="button"
-              className="absolute top-4 right-4 sm:top-6 sm:right-6 text-white bg-white/10 hover:bg-white/20 p-2 sm:p-3 rounded-full transition-colors z-[110]"
-              onClick={(e) => {
-                e.stopPropagation();
-                setSelectedImageIndex(null);
-              }}
-            >
-              <X className="w-6 h-6 sm:w-8 sm:h-8" />
-            </button>
-
             {/* Brojač slika */}
-            <div className="absolute top-4 left-4 sm:top-6 sm:left-6 text-white/80 font-display font-bold text-xs sm:text-lg bg-black/30 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-white/20">
+            <div className="fixed top-4 left-4 sm:top-6 sm:left-6 text-white font-display font-bold text-xs sm:text-base bg-black/50 backdrop-blur-sm px-3.5 py-2 rounded-full border border-white/20 z-[10000] pointer-events-none">
               {selectedImageIndex + 1} / {ALL_IMAGES.length}
             </div>
 
             {/* Strelica Levo */}
             <button
+              type="button"
+              aria-label="Prethodna slika"
               onClick={(e) => {
                 e.stopPropagation();
                 handlePrev();
               }}
-              className="absolute left-2 sm:left-8 top-1/2 -translate-y-1/2 text-white bg-white/10 hover:bg-white/30 p-2.5 sm:p-4 rounded-full transition-colors z-[102]"
+              className="fixed left-2 sm:left-6 top-1/2 -translate-y-1/2 text-white bg-black/40 hover:bg-black/60 p-2.5 sm:p-4 rounded-full transition-all z-[10000] border border-white/10"
             >
               <ChevronLeft className="w-6 h-6 sm:w-8 sm:h-8" />
             </button>
@@ -167,17 +164,19 @@ export const Gallery: React.FC = () => {
               transition={{ duration: 0.2 }}
               src={ALL_IMAGES[selectedImageIndex]}
               alt={`Galerija slika ${selectedImageIndex + 1}`}
-              className="max-w-full max-h-[80vh] sm:max-h-[85vh] rounded-2xl sm:rounded-3xl shadow-2xl border-2 sm:border-4 border-white object-contain"
+              className="max-w-full max-h-[75vh] sm:max-h-[85vh] rounded-2xl sm:rounded-3xl shadow-2xl border-2 sm:border-4 border-white object-contain my-auto"
               onClick={(e) => e.stopPropagation()}
             />
 
             {/* Strelica Desno */}
             <button
+              type="button"
+              aria-label="Sledeća slika"
               onClick={(e) => {
                 e.stopPropagation();
                 handleNext();
               }}
-              className="absolute right-2 sm:right-8 top-1/2 -translate-y-1/2 text-white bg-white/10 hover:bg-white/30 p-2.5 sm:p-4 rounded-full transition-colors z-[102]"
+              className="fixed right-2 sm:right-6 top-1/2 -translate-y-1/2 text-white bg-black/40 hover:bg-black/60 p-2.5 sm:p-4 rounded-full transition-all z-[10000] border border-white/10"
             >
               <ChevronRight className="w-6 h-6 sm:w-8 sm:h-8" />
             </button>

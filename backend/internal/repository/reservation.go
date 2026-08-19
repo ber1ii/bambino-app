@@ -15,6 +15,8 @@ var ErrSlotUnavailable = errors.New("the selected time slot is already booked")
 type Reservation struct {
 	ID          string    `json:"id"`
 	PackageID   string    `json:"package_id"`
+	PackageName string    `json:"package_name"`
+	Price       float64   `json:"price"`
 	ParentName  string    `json:"parent_name"`
 	ChildName   string    `json:"child_name"`
 	ChildAge    int       `json:"child_age"`
@@ -41,6 +43,15 @@ type CreateReservationParams struct {
 
 type ReservationRepository struct {
 	db *pgxpool.Pool
+}
+
+type BlockedSlot struct {
+	ID        string    `json:"id"`
+	Date      string    `json:"date"`
+	StartTime string    `json:"startTime"`
+	EndTime   string    `json:"endTime"`
+	Reason    string    `json:"reason"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 func NewReservationRepository(db *pgxpool.Pool) *ReservationRepository {
@@ -95,4 +106,13 @@ func (r *ReservationRepository) Create(ctx context.Context, params CreateReserva
 	}
 
 	return &res, nil
+}
+
+func (r *ReservationRepository) BlockTimeSlot(ctx context.Context, date, startTime, endTime, reason string) error {
+	query := `
+		INSERT INTO blocked_slots (date, start_time, end_time, reason, created_at)
+		VALUES ($1, $2, $3, $4, NOW())
+	`
+	_, err := r.db.Exec(ctx, query, date, startTime, endTime, reason)
+	return err
 }

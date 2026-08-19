@@ -36,7 +36,7 @@ export const Footer: React.FC = () => {
           {/* Informacije */}
           <div className="text-center md:text-left space-y-2.5 md:space-y-3">
             <h4 className="font-display font-bold text-base sm:text-lg text-[#2C3E2E]">Lokacija & Kontakt</h4>
-            <p className="font-bold text-xs sm:text-sm text-[#2C3E2E]/80">Vaselina Masleše 32a</p>
+            <p className="font-bold text-xs sm:text-sm text-[#2C3E2E]/80">Veselina Masleše 32a</p>
             <p className="font-bold text-xs sm:text-sm text-[#2C3E2E]/80">Nova Detelinara, Novi Sad</p>
             <p className="font-bold text-xs sm:text-sm text-[#3A5A40]">+381 64 2745930</p>
           </div>

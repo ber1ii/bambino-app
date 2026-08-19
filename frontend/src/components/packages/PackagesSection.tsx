@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import type { PartyPackage } from "../../types";
 import { PackageCard } from "./PackageCard";
+import { DrinksMenuModal } from "./DrinksMenuModal";
 
 interface PackagesSectionProps {
   packages: PartyPackage[];
@@ -12,6 +13,8 @@ export const PackagesSection: React.FC<PackagesSectionProps> = ({
   packages,
   onSelectPackage,
 }) => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   return (
     <section
       id="paketi"
@@ -66,9 +69,10 @@ export const PackagesSection: React.FC<PackagesSectionProps> = ({
                   description: pkg.description,
                   features: [
                     "Ekskluzivan zakup celog prostora (2h)",
+                    "Mini Maus maskota uključena u cenu",
+                    "Postavka sa balonima uključena u cenu (personalizovana uz doplatu)",
                     "Iskusni animatori i nadzor dece",
                     "Kompletan pribor za posluženje",
-                    "Mogućnost dodavanja dodatnog vremena (+30 min / +1h)",
                     "Slobodno donošenje sopstvene hrane i torte",
                   ],
                   isPopular: isWeekend,
@@ -78,7 +82,36 @@ export const PackagesSection: React.FC<PackagesSectionProps> = ({
             );
           })}
         </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mt-12 bg-[#3A5A40]/5 border border-[#3A5A40]/10 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6"
+        >
+          <div>
+            <h3 className="font-display font-semibold text-xl text-[#2D3748] mb-2">
+              Kutak za roditelje
+            </h3>
+            <p className="text-sm md:text-base font-bold text-[#2D3748]/70">
+              Dok se mališani zabavljaju, opustite se u našem kafeu uz bogat
+              izbor pića.
+            </p>
+          </div>
+
+          <button
+            onClick={() => setIsMenuOpen(true)}
+            className="shrink-0 px-6 py-3 bg-[#E9C46A] hover:bg-[#D4B055] text-[#2C3E2E] font-black rounded-full shadow-md transition-all hover:scale-105 flex items-center gap-2"
+          >
+            Pogledajte kartu pića
+          </button>
+        </motion.div>
       </div>
+
+      <DrinksMenuModal
+        isOpen={isMenuOpen}
+        onClose={() => setIsMenuOpen(false)}
+      />
     </section>
   );
 };
