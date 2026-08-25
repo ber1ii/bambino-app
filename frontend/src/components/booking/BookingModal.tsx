@@ -25,7 +25,7 @@ interface BookingModalProps {
 }
 
 const springConfig = { type: "spring", stiffness: 300, damping: 30 };
-const CLEANING_BUFFER_MINS = 15; // Buffer to prevent back-to-back bookings with zero prep time
+const CLEANING_BUFFER_MINS = 30; // Buffer to prevent back-to-back bookings with zero prep time
 
 const toLocalISOString = (dateStr: string, timeStr: string) => {
   const date = new Date(`${dateStr}T${timeStr}:00`);

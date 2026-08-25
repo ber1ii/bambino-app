@@ -166,8 +166,20 @@ func (h *ReservationHandler) UpdateReservationStatus(w http.ResponseWriter, r *h
 	// but only if the owner opted in via the confirm dialog on the frontend.
 	if payload.SendEmail {
 		go func(res *repository.Reservation) {
-			dateFormatted := res.StartTime.Format("02.01.2006.")
-			timeFormatted := fmt.Sprintf("%s - %s", res.StartTime.Format("15:04"), res.EndTime.Format("15:04"))
+			// res.StartTime/EndTime come from lower()/upper() on booking_range via pgx,
+			// which scans timestamptz back as UTC. Create's email avoids this because it
+			// formats the payload's already-local time directly. Convert to Belgrade time
+			// here so Confirm/Cancel emails don't show a UTC-offset-shifted slot.
+			loc, err := time.LoadLocation("Europe/Belgrade")
+			if err != nil {
+				loc = time.UTC
+				log.Printf("[WARN] failed to load Europe/Belgrade location, falling back to UTC: %v", err)
+			}
+			startLocal := res.StartTime.In(loc)
+			endLocal := res.EndTime.In(loc)
+
+			dateFormatted := startLocal.Format("02.01.2006.")
+			timeFormatted := fmt.Sprintf("%s - %s", startLocal.Format("15:04"), endLocal.Format("15:04"))
 
 			if err := service.SendStatusUpdateEmail(res.Email, res.ParentName, dateFormatted, timeFormatted, status); err != nil {
 				log.Printf("[ERROR] Status update email send failed: %v", err)
