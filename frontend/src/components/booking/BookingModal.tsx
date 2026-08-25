@@ -520,7 +520,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
                     <div className="space-y-1.5 sm:space-y-2">
                       <label className="text-[11px] sm:text-xs font-black text-[#2D3748]/80 uppercase tracking-wider">
-                        Ime Slavljenika
+                        Ime Slavljenika/ce
                       </label>
                       <div className="relative">
                         <Smile className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-[#319795]" />

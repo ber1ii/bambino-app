@@ -3,7 +3,6 @@ package handler
 import (
 	"crypto/hmac"
 	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"net/http"
 	"os"
@@ -28,11 +27,11 @@ type BlockSlotPayload struct {
 	Reason    string `json:"reason"`
 }
 
-func getPepperedPIN(pin string) string {
+func getPepperedPIN(pin string) []byte {
 	pepper := os.Getenv("ADMIN_PEPPER")
 	h := hmac.New(sha256.New, []byte(pepper))
 	h.Write([]byte(pin))
-	return hex.EncodeToString(h.Sum(nil))
+	return h.Sum(nil)
 }
 
 func (h *ReservationHandler) Login(w http.ResponseWriter, r *http.Request) {
@@ -44,10 +43,14 @@ func (h *ReservationHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	expectedPin := os.Getenv("ADMIN_PIN")
 	if expectedPin == "" {
+		if os.Getenv("ENV") == "production" {
+			http.Error(w, `{"error":"server misconfigured"}`, http.StatusInternalServerError)
+			return
+		}
 		expectedPin = "123456" // Default dev fallback
 	}
 
-	if getPepperedPIN(payload.Pin) != getPepperedPIN(expectedPin) {
+	if !hmac.Equal(getPepperedPIN(payload.Pin), getPepperedPIN(expectedPin)) {
 		http.Error(w, `{"error":"invalid pin"}`, http.StatusUnauthorized)
 		return
 	}
@@ -63,17 +66,6 @@ func (h *ReservationHandler) Login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error":"failed to generate token"}`, http.StatusInternalServerError)
 		return
 	}
-
-	isProd := os.Getenv("ENV") == "production"
-	http.SetCookie(w, &http.Cookie{
-		Name:     "admin_token",
-		Value:    tokenString,
-		Expires:  time.Now().Add(24 * time.Hour),
-		HttpOnly: true,
-		Secure:   isProd,
-		Path:     "/",
-		SameSite: http.SameSiteStrictMode,
-	})
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{

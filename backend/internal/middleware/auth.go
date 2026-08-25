@@ -10,32 +10,25 @@ import (
 
 func RequireAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var tokenStr string
-
-		// 1. Try reading from HttpOnly Cookie
-		if cookie, err := r.Cookie("admin_token"); err == nil {
-			tokenStr = cookie.Value
+		authHeader := r.Header.Get("Authorization")
+		if !strings.HasPrefix(authHeader, "Bearer ") {
+			http.Error(w, `{"error":"unauthorized"}`, http.StatusUnauthorized)
+			return
 		}
+		tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
 
-		// 2. Fallback to Authorization Header (Bearer token)
-		if tokenStr == "" {
-			authHeader := r.Header.Get("Authorization")
-			if strings.HasPrefix(authHeader, "Bearer ") {
-				tokenStr = strings.TrimPrefix(authHeader, "Bearer ")
-			}
-		}
+		secret := config.JWTSecret()
+		claims := jwt.MapClaims{}
+		token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
+			return secret, nil
+		}, jwt.WithValidMethods([]string{"HS256"}))
 
-		if tokenStr == "" {
+		if err != nil || !token.Valid {
 			http.Error(w, `{"error":"unauthorized"}`, http.StatusUnauthorized)
 			return
 		}
 
-		secret := config.JWTSecret()
-		token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
-			return secret, nil
-		})
-
-		if err != nil || !token.Valid {
+		if admin, ok := claims["admin"].(bool); !ok || !admin {
 			http.Error(w, `{"error":"unauthorized"}`, http.StatusUnauthorized)
 			return
 		}

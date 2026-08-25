@@ -18,7 +18,6 @@ type TimeSlot struct {
 	EndTime   time.Time `json:"end_time"`
 }
 
-// Fixed: Attached to *ReservationRepository instead of *Repository
 func (r *ReservationRepository) GetPackages(ctx context.Context) ([]Package, error) {
 	query := `SELECT id, title, description, duration_minutes, price FROM packages ORDER BY price ASC`
 	rows, err := r.db.Query(ctx, query)

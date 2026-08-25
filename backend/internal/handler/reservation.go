@@ -80,13 +80,17 @@ func (h *ReservationHandler) Create(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(reservation)
 
-	// Asynchronously send confirmation email and WhatsApp notification
+	// Asynchronously send confirmation email (to customer) and owner notification email
 	go func(r *repository.Reservation) {
 		dateFormatted := r.StartTime.Format("02.01.2006.")
 		timeFormatted := fmt.Sprintf("%s - %s", r.StartTime.Format("15:04"), r.EndTime.Format("15:04"))
 
 		if err := service.SendConfirmationEmail(r.Email, r.ParentName, dateFormatted, timeFormatted); err != nil {
-			log.Printf("[ERROR] Email send failed: %v", err)
+			log.Printf("[ERROR] Confirmation email send failed: %v", err)
+		}
+
+		if err := service.SendOwnerNotificationEmail(r.ParentName, r.ChildName, r.PhoneNumber, dateFormatted, timeFormatted, r.Notes); err != nil {
+			log.Printf("[ERROR] Owner notification email send failed: %v", err)
 		}
 	}(reservation)
 }

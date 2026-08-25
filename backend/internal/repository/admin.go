@@ -4,12 +4,6 @@ import (
 	"context"
 )
 
-func (r *ReservationRepository) GetAdminHash(ctx context.Context, email string) (string, error) {
-	var hash string
-	err := r.db.QueryRow(ctx, "SELECT password_hash FROM admin_users WHERE email = $1", email).Scan(&hash)
-	return hash, err
-}
-
 func (r *ReservationRepository) GetAllReservations(ctx context.Context, limit, offset int) ([]Reservation, error) {
 	query := `
 		SELECT 

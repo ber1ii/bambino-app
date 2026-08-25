@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Utensils, ExternalLink, Instagram } from "lucide-react";
-import keteringPhoto from "../../photos/ketering.jpg";
+import keteringPhoto from "../../photos/ketering2.jpeg";
 
 export const CateringSection: React.FC = () => {
   const cateringPostUrl =
