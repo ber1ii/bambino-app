@@ -105,3 +105,41 @@ func SendOwnerNotificationEmail(parentName, childName, phone, dateStr, timeStr, 
 
 	return sendResendEmail(to, "Nova Rezervacija Proslave - Bambino", body)
 }
+
+// SendStatusUpdateEmail notifies the customer when the owner confirms or cancels
+// their reservation from the admin panel.
+func SendStatusUpdateEmail(toEmail, parentName, dateStr, timeStr, status string) error {
+	safeName := html.EscapeString(parentName)
+
+	var subject, body string
+	switch status {
+	case "confirmed":
+		subject = "Vaša Rezervacija je Potvrđena - Bambino"
+		body = fmt.Sprintf(`
+			<h2>Rezervacija Potvrđena</h2>
+			<p>Poštovani/a <strong>%s</strong>,</p>
+			<p>Vaša rezervacija je potvrđena! Vidimo se:</p>
+			<ul>
+				<li><strong>Datum:</strong> %s</li>
+				<li><strong>Vreme:</strong> %s</li>
+			</ul>
+			<p>Radujemo se vašoj poseti!</p>
+		`, safeName, dateStr, timeStr)
+	case "cancelled":
+		subject = "Vaša Rezervacija je Otkazana - Bambino"
+		body = fmt.Sprintf(`
+			<h2>Rezervacija Otkazana</h2>
+			<p>Poštovani/a <strong>%s</strong>,</p>
+			<p>Obaveštavamo Vas da je Vaša rezervacija za termin ispod otkazana:</p>
+			<ul>
+				<li><strong>Datum:</strong> %s</li>
+				<li><strong>Vreme:</strong> %s</li>
+			</ul>
+			<p>Ukoliko imate pitanja, slobodno nas kontaktirajte.</p>
+		`, safeName, dateStr, timeStr)
+	default:
+		return nil // no email for other status transitions (e.g. pending, completed)
+	}
+
+	return sendResendEmail([]string{toEmail}, subject, body)
+}

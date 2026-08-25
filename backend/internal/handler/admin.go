@@ -4,6 +4,8 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -11,6 +13,8 @@ import (
 	"time"
 
 	"bambino-backend/internal/config"
+	"bambino-backend/internal/repository"
+	"bambino-backend/internal/service"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/golang-jwt/jwt/v5"
@@ -67,6 +71,10 @@ func (h *ReservationHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Bearer-token auth only. No cookie is set here (see middleware/auth.go) —
+	// the frontend already stores this token and sends it as `Authorization: Bearer`,
+	// so an HttpOnly cookie carrying the same token added nothing but a second,
+	// weaker copy of the credential.
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
 		"message": "logged in",
@@ -124,7 +132,8 @@ func (h *ReservationHandler) UpdateReservationStatus(w http.ResponseWriter, r *h
 	id := chi.URLParam(r, "id")
 
 	var payload struct {
-		Status string `json:"status"`
+		Status    string `json:"status"`
+		SendEmail bool   `json:"send_email"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		http.Error(w, `{"error":"invalid payload"}`, http.StatusBadRequest)
@@ -144,13 +153,27 @@ func (h *ReservationHandler) UpdateReservationStatus(w http.ResponseWriter, r *h
 		return
 	}
 
-	if err := h.repo.UpdateReservationStatus(r.Context(), id, status); err != nil {
+	updated, err := h.repo.UpdateReservationStatus(r.Context(), id, status)
+	if err != nil {
 		http.Error(w, `{"error":"failed to update status"}`, http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(`{"message":"status updated"}`))
+
+	// "Potvrdi" (confirmed) and "Otkazi" (cancelled) both notify the customer,
+	// but only if the owner opted in via the confirm dialog on the frontend.
+	if payload.SendEmail {
+		go func(res *repository.Reservation) {
+			dateFormatted := res.StartTime.Format("02.01.2006.")
+			timeFormatted := fmt.Sprintf("%s - %s", res.StartTime.Format("15:04"), res.EndTime.Format("15:04"))
+
+			if err := service.SendStatusUpdateEmail(res.Email, res.ParentName, dateFormatted, timeFormatted, status); err != nil {
+				log.Printf("[ERROR] Status update email send failed: %v", err)
+			}
+		}(updated)
+	}
 }
 
 func (h *ReservationHandler) BlockTimeSlot(w http.ResponseWriter, r *http.Request) {
