@@ -55,6 +55,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const [phoneNumber, setPhoneNumber] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
+  const [guestPackage, setGuestPackage] = useState<string>("");
 
   // UI Feedback States
   const [slotConflict, setSlotConflict] = useState<boolean>(false);
@@ -249,12 +250,10 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     const endMins = String(endDateTime.getMinutes()).padStart(2, "0");
     const endISO = toLocalISOString(selectedDate, `${endHours}:${endMins}`);
 
-    const formattedNotes =
-      extraTimeMinutes > 0
-        ? `[Dodatno vreme: +${extraTimeMinutes} min] ${notes}`.trim()
-        : notes;
-
-    setIsSubmitting(true);
+    const extraTimeStr = extraTimeMinutes > 0 ? `[Dodatno vreme: +${extraTimeMinutes} min]` : "";
+    const guestStr = guestPackage ? `[Paket: ${guestPackage}]` : "";
+    const prefix = [extraTimeStr, guestStr].filter(Boolean).join(" ");
+    const formattedNotes = prefix ? `${prefix}\n${notes}`.trim() : notes.trim();
 
     try {
       await api.createReservation({
@@ -464,6 +463,38 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                           </div>
                           <div className="text-[9px] sm:text-[10px] opacity-80 mt-0.5">
                             {opt.price}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Broj Dece i Animatora (Opciono) */}
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <label className="text-[11px] sm:text-xs font-black text-[#2D3748]/80 uppercase tracking-wider flex items-center gap-1.5">
+                      <Smile className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#319795]" />
+                      Broj Dece i Animatora (Opciono)
+                    </label>
+                    <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                      {[
+                        { value: "20 Dece + 2 Animatora", label: "20 Dece", desc: "+ 2 Animatora" },
+                        { value: "30 Dece + 3 Animatora", label: "30 Dece", desc: "+ 3 Animatora" },
+                      ].map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => setGuestPackage(guestPackage === opt.value ? "" : opt.value)}
+                          className={`p-2 sm:p-3 rounded-xl border-2 text-center transition-all ${
+                            guestPackage === opt.value
+                              ? "border-[#319795] bg-white font-bold text-[#319795] shadow-sm"
+                              : "border-white bg-white/60 text-[#2D3748]/70 hover:bg-white"
+                          }`}
+                        >
+                          <div className="text-[11px] sm:text-xs font-black leading-tight">
+                            {opt.label}
+                          </div>
+                          <div className="text-[9px] sm:text-[10px] opacity-80 mt-0.5">
+                            {opt.desc}
                           </div>
                         </button>
                       ))}
