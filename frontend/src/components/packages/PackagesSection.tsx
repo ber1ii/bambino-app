@@ -71,6 +71,7 @@ export const PackagesSection: React.FC<PackagesSectionProps> = ({
                     "Ekskluzivan zakup celog prostora (2h)",
                     "Mini Maus maskota uključena u cenu",
                     "Postavka sa balonima uključena u cenu (personalizovana uz doplatu)",
+                    "NOVO: Lutkarska Predstava",
                     "Iskusni animatori i nadzor dece",
                     "Pribor za tortu, tanjirići i poslužavnici za pecivo, salvete i čašice za decu",
                     "Slobodno donošenje sopstvene hrane i torte",

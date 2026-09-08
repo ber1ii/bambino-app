@@ -101,6 +101,7 @@ func SendOwnerNotificationEmail(parentName, childName, phone, dateStr, timeStr, 
 			<li><strong>Vreme:</strong> %s</li>
 			<li><strong>Napomena:</strong> %s</li>
 		</ul>
+		<h3>Ovaj imejl je automatski generisan, molimo ne odgovarajte na njega.</h3>
 	`, safeName, safeChild, html.EscapeString(phone), dateStr, timeStr, safeNotes)
 
 	return sendResendEmail(to, "Nova Rezervacija Proslave - Bambino", body)
@@ -124,6 +125,7 @@ func SendStatusUpdateEmail(toEmail, parentName, dateStr, timeStr, status string)
 				<li><strong>Vreme:</strong> %s</li>
 			</ul>
 			<p>Radujemo se vašoj poseti!</p>
+			<h3>Ovaj imejl je automatski generisan, molimo ne odgovarajte na njega.</h3>
 		`, safeName, dateStr, timeStr)
 	case "cancelled":
 		subject = "Vaša Rezervacija je Otkazana - Bambino"
@@ -136,6 +138,7 @@ func SendStatusUpdateEmail(toEmail, parentName, dateStr, timeStr, status string)
 				<li><strong>Vreme:</strong> %s</li>
 			</ul>
 			<p>Ukoliko imate pitanja, slobodno nas kontaktirajte.</p>
+			<h3>Ovaj imejl je automatski generisan, molimo ne odgovarajte na njega.</h3>
 		`, safeName, dateStr, timeStr)
 	default:
 		return nil // no email for other status transitions (e.g. pending, completed)
