@@ -138,6 +138,7 @@ func SendStatusUpdateEmail(toEmail, parentName, dateStr, timeStr, status string)
 				<li><strong>Vreme:</strong> %s</li>
 			</ul>
 			<p>Ukoliko imate pitanja, slobodno nas kontaktirajte.</p>
+			<p>+381 64 2745930</p>
 			<h3>Ovaj imejl je automatski generisan, molimo ne odgovarajte na njega.</h3>
 		`, safeName, dateStr, timeStr)
 	default:
