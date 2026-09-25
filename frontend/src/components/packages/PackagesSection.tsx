@@ -75,6 +75,8 @@ export const PackagesSection: React.FC<PackagesSectionProps> = ({
                     "Iskusni animatori i nadzor dece",
                     "Pribor za tortu, tanjirići i poslužavnici za pecivo, salvete i čašice za decu",
                     "Slobodno donošenje sopstvene hrane i torte",
+                    "Depozit je 5000RSD",
+                    "Fotografije i snimci sa rodjendana ukljuceni u paket"
                   ],
                   isPopular: isWeekend,
                 }}

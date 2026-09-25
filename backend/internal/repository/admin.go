@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"fmt"
+	"strings"
 )
 
 func (r *ReservationRepository) GetAllReservations(ctx context.Context, limit, offset int) ([]Reservation, error) {
@@ -57,28 +59,51 @@ func (r *ReservationRepository) UpdateReservationStatus(ctx context.Context, id 
 	return &res, nil
 }
 
-func (r *ReservationRepository) GetAllReservationsPaginated(ctx context.Context, page, limit int) ([]Reservation, int, error) {
+func (r *ReservationRepository) GetAllReservationsPaginated(ctx context.Context, page, limit int, status, search string) ([]Reservation, int, error) {
 	offset := (page - 1) * limit
+	var args []interface{}
+	var conditions []string
 
-	// 1. Ukupan broj zapisa
+	// 1. Build dynamic filtering conditions
+	if status != "" && status != "ALL" {
+		args = append(args, strings.ToLower(status))
+		conditions = append(conditions, fmt.Sprintf("r.status = $%d", len(args)))
+	}
+
+	if search != "" {
+		searchTerm := "%" + search + "%"
+		args = append(args, searchTerm)
+		idx := len(args)
+		// Case-insensitive search across multiple columns
+		conditions = append(conditions, fmt.Sprintf("(r.child_name ILIKE $%d OR r.parent_name ILIKE $%d OR r.phone_number ILIKE $%d)", idx, idx, idx))
+	}
+
+	whereClause := ""
+	if len(conditions) > 0 {
+		whereClause = "WHERE " + strings.Join(conditions, " AND ")
+	}
+
+	// 2. Total count with filters applied
+	countQuery := fmt.Sprintf(`SELECT COUNT(*) FROM reservations r %s`, whereClause)
 	var total int
-	countQuery := `SELECT COUNT(*) FROM reservations`
-	if err := r.db.QueryRow(ctx, countQuery).Scan(&total); err != nil {
+	if err := r.db.QueryRow(ctx, countQuery, args...).Scan(&total); err != nil {
 		return nil, 0, err
 	}
 
-	// 2. Straničeni upit sa LEFT JOIN na pakete
-	query := `
+	// 3. Paginated records
+	args = append(args, limit, offset)
+	query := fmt.Sprintf(`
 		SELECT
 			r.id, r.package_id, COALESCE(p.title, 'Nepoznat paket') AS package_name, COALESCE(p.price, 0) AS price,
 			r.parent_name, r.child_name, r.child_age, r.phone_number, r.email, r.notes, r.status,
 			lower(r.booking_range) AS start_time, upper(r.booking_range) AS end_time, r.created_at
 		FROM reservations r
 		LEFT JOIN packages p ON r.package_id = p.id
+		%s
 		ORDER BY start_time DESC
-		LIMIT $1 OFFSET $2`
+		LIMIT $%d OFFSET $%d`, whereClause, len(args)-1, len(args))
 
-	rows, err := r.db.Query(ctx, query, limit, offset)
+	rows, err := r.db.Query(ctx, query, args...)
 	if err != nil {
 		return nil, 0, err
 	}

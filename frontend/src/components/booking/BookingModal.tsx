@@ -47,6 +47,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
   // Form Field States
   const [extraTimeMinutes, setExtraTimeMinutes] = useState<number>(0);
+  const [extraTimeDirection, setExtraTimeDirection] = useState<"before" | "after">("after");
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedSlot, setSelectedSlot] = useState<string>("");
   const [parentName, setParentName] = useState<string>("");
@@ -136,8 +137,6 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     };
   }, [isOpen]);
 
-  const calculateTotalDuration = () => 120 + extraTimeMinutes;
-
   const calculateTotalPrice = () => {
     const basePrice = currentDayType === "vikend" ? 16000 : 13000;
     const extraPrice =
@@ -149,6 +148,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     date: string,
     slot: string,
     extraMins: number,
+    direction: "before" | "after",
     slots: TimeSlot[],
   ) => {
     if (!date || !slot) {
@@ -156,11 +156,21 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       return;
     }
     const [startStr] = slot.split(" - ");
-    const proposedStart = new Date(`${date}T${startStr}:00`);
-    const totalDuration = 120 + extraMins;
+    
+    // Calculate new start and end times based on direction
+    let proposedStart = new Date(`${date}T${startStr}:00`);
+    let proposedEnd = new Date(proposedStart.getTime() + 120 * 60 * 1000);
+
+    if (extraMins > 0) {
+      if (direction === "before") {
+        proposedStart = new Date(proposedStart.getTime() - extraMins * 60 * 1000);
+      } else {
+        proposedEnd = new Date(proposedEnd.getTime() + extraMins * 60 * 1000);
+      }
+    }
+
     const proposedEndWithBuffer = new Date(
-      proposedStart.getTime() +
-        (totalDuration + CLEANING_BUFFER_MINS) * 60 * 1000,
+      proposedEnd.getTime() + CLEANING_BUFFER_MINS * 60 * 1000,
     );
 
     const hasConflict = slots.some((s) => {
@@ -200,7 +210,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     try {
       const slots = await api.getAvailability(date);
       setReservedSlots(slots);
-      checkSlotConflict(date, selectedSlot, extraTimeMinutes, slots);
+      checkSlotConflict(date, selectedSlot, extraTimeMinutes, extraTimeDirection, slots);
     } catch (err) {
       console.error("Failed to check availability:", err);
     }
@@ -208,7 +218,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
   useEffect(() => {
     fetchAvailability(selectedDate);
-  }, [selectedDate, selectedSlot, extraTimeMinutes]);
+  }, [selectedDate, selectedSlot, extraTimeMinutes, extraTimeDirection]);
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -240,18 +250,31 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     const finalPackageId = pkg ? pkg.id : (currentDayType ?? "radni-dan");
 
     const [startStr] = selectedSlot.split(" - ");
-    const startISO = toLocalISOString(selectedDate, startStr);
 
-    const startDateTime = new Date(`${selectedDate}T${startStr}:00`);
-    const endDateTime = new Date(
-      startDateTime.getTime() + calculateTotalDuration() * 60 * 1000,
-    );
+    let startDateTime = new Date(`${selectedDate}T${startStr}:00`);
+    let endDateTime = new Date(startDateTime.getTime() + 120 * 60 * 1000);
+
+    // Apply the shift in the chosen direction
+    if (extraTimeMinutes > 0) {
+      if (extraTimeDirection === "before") {
+        startDateTime = new Date(startDateTime.getTime() - extraTimeMinutes * 60 * 1000);
+      } else {
+        endDateTime = new Date(endDateTime.getTime() + extraTimeMinutes * 60 * 1000);
+      }
+    }
+
+    const startHours = String(startDateTime.getHours()).padStart(2, "0");
+    const startMins = String(startDateTime.getMinutes()).padStart(2, "0");
+    const startISO = toLocalISOString(selectedDate, `${startHours}:${startMins}`);
+
     const endHours = String(endDateTime.getHours()).padStart(2, "0");
     const endMins = String(endDateTime.getMinutes()).padStart(2, "0");
     const endISO = toLocalISOString(selectedDate, `${endHours}:${endMins}`);
 
-    const extraTimeStr = extraTimeMinutes > 0 ? `[Dodatno vreme: +${extraTimeMinutes} min]` : "";
+    const directionLabel = extraTimeDirection === "before" ? "PRE termina" : "POSLE termina";
+    const extraTimeStr = extraTimeMinutes > 0 ? `[Dodatno vreme: +${extraTimeMinutes} min (${directionLabel})]` : "";
     const guestStr = guestPackage ? `[Paket: ${guestPackage}]` : "";
+    
     const prefix = [extraTimeStr, guestStr].filter(Boolean).join(" ");
     const formattedNotes = prefix ? `${prefix}\n${notes}`.trim() : notes.trim();
 
@@ -467,6 +490,34 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                         </button>
                       ))}
                     </div>
+
+                    {/* Direction Toggle (Only shows if extra time is selected) */}
+                    {extraTimeMinutes > 0 && (
+                      <div className="flex bg-white/60 p-1 mt-2 rounded-xl border border-white">
+                        <button
+                          type="button"
+                          onClick={() => setExtraTimeDirection("before")}
+                          className={`flex-1 py-1.5 text-[10px] sm:text-xs font-bold rounded-lg transition-all ${
+                            extraTimeDirection === "before" 
+                              ? "bg-[#319795] text-white shadow-sm" 
+                              : "text-[#2D3748]/60 hover:text-[#2D3748] hover:bg-white/50"
+                          }`}
+                        >
+                          Pre termina
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setExtraTimeDirection("after")}
+                          className={`flex-1 py-1.5 text-[10px] sm:text-xs font-bold rounded-lg transition-all ${
+                            extraTimeDirection === "after" 
+                              ? "bg-[#319795] text-white shadow-sm" 
+                              : "text-[#2D3748]/60 hover:text-[#2D3748] hover:bg-white/50"
+                          }`}
+                        >
+                          Posle termina
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   {/* Broj Dece i Animatora (Opciono) */}

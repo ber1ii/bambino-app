@@ -109,13 +109,23 @@ export const api = {
     return data; // Returns { token: "..." }
   },
 
-  getAdminReservations: async (
+getAdminReservations: async (
     token: string,
     page: number = 1,
     limit: number = 10,
+    search: string = "",
+    status: string = "ALL"
   ): Promise<PaginatedReservationsResponse> => {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    
+    if (search) params.append("search", search);
+    if (status && status !== "ALL") params.append("status", status);
+
     const response = await fetch(
-      `${API_BASE_URL}/admin/reservations?page=${page}&limit=${limit}`,
+      `${API_BASE_URL}/admin/reservations?${params.toString()}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

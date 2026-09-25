@@ -100,21 +100,27 @@ func parsePagination(r *http.Request) (limit, offset int) {
 func (h *ReservationHandler) GetAllReservations(w http.ResponseWriter, r *http.Request) {
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+	status := r.URL.Query().Get("status")
+	search := r.URL.Query().Get("search")
 
 	if page < 1 {
 		page = 1
 	}
 	if limit < 1 || limit > 50 {
 		limit = 10
-	} // podrazumevano 10 po strani
+	}
 
-	reservations, totalCount, err := h.repo.GetAllReservationsPaginated(r.Context(), page, limit)
+	// Pass the new status and search arguments
+	reservations, totalCount, err := h.repo.GetAllReservationsPaginated(r.Context(), page, limit, status, search)
 	if err != nil {
 		http.Error(w, `{"error":"failed to fetch reservations"}`, http.StatusInternalServerError)
 		return
 	}
 
-	totalPages := (totalCount + limit - 1) / limit
+	totalPages := 1
+	if limit > 0 {
+		totalPages = (totalCount + limit - 1) / limit
+	}
 
 	response := map[string]interface{}{
 		"data":        reservations,

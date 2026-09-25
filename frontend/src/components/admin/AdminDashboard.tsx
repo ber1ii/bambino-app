@@ -35,6 +35,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   // Filters & Search
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [activeTab, setActiveTab] = useState<"LIST" | "BLOCK">("LIST");
 
@@ -52,18 +53,31 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
 
+  // 1. Debounce the search term to prevent API spam
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchTerm), 400);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // 2. Reset back to page 1 whenever a filter changes
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, statusFilter]);
+
+  // 3. Fetch passing the filters directly to the API
   const fetchReservations = async () => {
     try {
       setLoading(true);
       setError(null);
-      const res = await api.getAdminReservations(token, page, 10);
+      const res = await api.getAdminReservations(token, page, 10, debouncedSearch, statusFilter);
 
       if (Array.isArray(res)) {
         setReservations(res);
         setTotalPages(1);
       } else {
         setReservations(res.data || []);
-        setTotalPages(Math.min(res.total_pages || 1, 5));
+        // Removed the artificial 5-page cap here
+        setTotalPages(res.total_pages || 1);
       }
     } catch (err: any) {
       setError(err.message || "Greška pri učitavanju.");
@@ -72,9 +86,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   };
 
+  // Re-fetch automatically when page or filters change
   useEffect(() => {
     fetchReservations();
-  }, [page]);
+  }, [page, debouncedSearch, statusFilter]);
 
   // Quick Revenue & Booking Metrics Calculation
   const metrics = useMemo(() => {
@@ -103,24 +118,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       totalCount: reservations.length,
     };
   }, [reservations]);
-
-  // Filtered List
-  const filteredReservations = useMemo(() => {
-    return reservations.filter((r: any) => {
-      const childName = r.child_name || r.childName || "";
-      const parentName = r.parent_name || r.parentName || "";
-      const phone = r.phone_number || r.phone || "";
-      const st = (r.status || "").toUpperCase();
-
-      const matchesSearch =
-        childName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        parentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        phone.includes(searchTerm);
-
-      const matchesStatus = statusFilter === "ALL" || st === statusFilter;
-      return matchesSearch && matchesStatus;
-    });
-  }, [reservations, searchTerm, statusFilter]);
 
   const handleStatusChange = async (
     id: string,
@@ -355,7 +352,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             )}
 
             {/* Reservation Cards */}
-            {filteredReservations.length === 0 ? (
+            {reservations.length === 0 ? (
               <div className="bg-white p-8 sm:p-12 text-center rounded-2xl border border-slate-200">
                 <Calendar className="w-10 h-10 sm:w-12 sm:h-12 text-slate-300 mx-auto mb-2 sm:mb-3" />
                 <p className="font-bold text-slate-600 text-xs sm:text-sm">
@@ -365,7 +362,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             ) : (
               <>
                 <div className="space-y-3 sm:space-y-4">
-                  {filteredReservations.map((item: any) => {
+                  {reservations.map((item: any) => {
                     const rawStart =
                       item.start_time || item.startTime || item.booking_range;
                     const rawEnd = item.end_time || item.endTime;
