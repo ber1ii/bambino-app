@@ -468,8 +468,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                     <div className="grid grid-cols-3 gap-2 sm:gap-3">
                       {[
                         { mins: 0, label: "Standard (2h)", price: "+0 RSD" },
-                        { mins: 30, label: "+30 Minuta", price: "+2.000 RSD" },
-                        { mins: 60, label: "+1 Sat", price: "+4.000 RSD" },
+                        { mins: 30, label: "+30 Minuta", price: "+3.000 RSD" },
+                        { mins: 60, label: "+1 Sat", price: "+5.000 RSD" },
                       ].map((opt) => (
                         <button
                           key={opt.mins}
