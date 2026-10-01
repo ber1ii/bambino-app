@@ -140,7 +140,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const calculateTotalPrice = () => {
     const basePrice = currentDayType === "vikend" ? 16000 : 13000;
     const extraPrice =
-      extraTimeMinutes === 30 ? 2000 : extraTimeMinutes === 60 ? 4000 : 0;
+      extraTimeMinutes === 30 ? 3000 : extraTimeMinutes === 60 ? 5000 : 0;
     return basePrice + extraPrice;
   };
 

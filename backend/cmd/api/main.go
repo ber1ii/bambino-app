@@ -14,6 +14,7 @@ import (
 	"bambino-backend/internal/handler"
 	authmiddleware "bambino-backend/internal/middleware"
 	"bambino-backend/internal/repository"
+	"bambino-backend/internal/worker"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -51,6 +52,8 @@ func main() {
 		log.Fatalf("Database ping failed: %v\n", err)
 	}
 	fmt.Println("Connected to PostgreSQL successfully.")
+
+	worker.StartBackgroundTasks(dbPool)
 
 	// Initialize Repositories & Handlers
 	resRepo := repository.NewReservationRepository(dbPool)

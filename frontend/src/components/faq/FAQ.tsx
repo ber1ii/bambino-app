@@ -30,7 +30,7 @@ const FAQ_ITEMS: FaqItem[] = [
   },
   {
     question: 'Da li je moguće produžiti termin proslave?',
-    answer: 'Mogućnost produženja postoji: sat vremena je 4000 din, a pola sata 2000 din.',
+    answer: 'Mogućnost produženja postoji: sat vremena je 5000 din, a pola sata 3000 din.',
   },
   {
     question: 'Da li imate opciju dnevne igraonice?',
