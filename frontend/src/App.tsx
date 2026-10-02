@@ -13,6 +13,8 @@ import { FAQ } from "./components/faq/FAQ";
 import { BookingModal } from "./components/booking/BookingModal";
 import type { PartyPackage } from "./types";
 import { api, toPartyPackage } from "./services/api";
+import { PolitikaPrivatnosti } from "./components/policies/PrivacyPolicy";
+import { UsloviKoriscenja } from "./components/policies/TermsOfService";
 
 import treeTop from "./photos/tree-top.png";
 import treeTrunk from "./photos/tree-trunk.png";
@@ -28,6 +30,8 @@ import { CateringSection } from "./components/contact/CateringSection";
 
 export const App: React.FC = () => {
   const [isAdminRoute, setIsAdminRoute] = useState(false);
+  const [isTermsRoute, setIsTermsRoute] = useState(false); 
+  const [isPrivacyRoute, setIsPrivacyRoute] = useState(false); 
   const [adminPin, setAdminPin] = useState<string | null>(
     localStorage.getItem("bambino_admin_pin"),
   );
@@ -41,8 +45,14 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     // Check if URL is /admin
-    if (window.location.pathname.startsWith("/admin")) {
+    const path = window.location.pathname;
+    
+    if (path.startsWith("/admin")) {
       setIsAdminRoute(true);
+    } else if (path === "/uslovi-koriscenja") {
+      setIsTermsRoute(true);
+    } else if (path === "/politika-privatnosti") {
+      setIsPrivacyRoute(true);
     }
 
     api
@@ -88,6 +98,30 @@ export const App: React.FC = () => {
   const handleOpenBooking = () => {
     setIsBookingOpen(true);
   };
+
+  if (isTermsRoute) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#F5F2EB] via-[#E8EED8] to-[#DCE6C8] text-[#2C3E2E]">
+        <Navbar onOpenBooking={handleOpenBooking} isGalleryOpen={false} />
+        <div className="pt-24 pb-12 min-h-[75vh]">
+          <UsloviKoriscenja />
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (isPrivacyRoute) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#F5F2EB] via-[#E8EED8] to-[#DCE6C8] text-[#2C3E2E]">
+        <Navbar onOpenBooking={handleOpenBooking} isGalleryOpen={false} />
+        <div className="pt-24 pb-12 min-h-[75vh]">
+          <PolitikaPrivatnosti />
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   const handleCloseBooking = () => setIsBookingOpen(false);
 

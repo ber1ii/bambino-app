@@ -65,7 +65,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             {/* Logo Sekcija */}
             <a
-              href="#"
+              href="/"
               className="flex items-center gap-2 sm:gap-3 group shrink-0"
             >
               <img

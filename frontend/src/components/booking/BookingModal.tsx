@@ -47,7 +47,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
   // Form Field States
   const [extraTimeMinutes, setExtraTimeMinutes] = useState<number>(0);
-  const [extraTimeDirection, setExtraTimeDirection] = useState<"before" | "after">("after");
+  const [extraTimeDirection, setExtraTimeDirection] = useState<
+    "before" | "after"
+  >("after");
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedSlot, setSelectedSlot] = useState<string>("");
   const [parentName, setParentName] = useState<string>("");
@@ -57,6 +59,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const [email, setEmail] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
   const [guestPackage, setGuestPackage] = useState<string>("");
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [termsError, setTermsError] = useState("");
 
   // UI Feedback States
   const [slotConflict, setSlotConflict] = useState<boolean>(false);
@@ -156,14 +160,16 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       return;
     }
     const [startStr] = slot.split(" - ");
-    
+
     // Calculate new start and end times based on direction
     let proposedStart = new Date(`${date}T${startStr}:00`);
     let proposedEnd = new Date(proposedStart.getTime() + 120 * 60 * 1000);
 
     if (extraMins > 0) {
       if (direction === "before") {
-        proposedStart = new Date(proposedStart.getTime() - extraMins * 60 * 1000);
+        proposedStart = new Date(
+          proposedStart.getTime() - extraMins * 60 * 1000,
+        );
       } else {
         proposedEnd = new Date(proposedEnd.getTime() + extraMins * 60 * 1000);
       }
@@ -210,7 +216,13 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     try {
       const slots = await api.getAvailability(date);
       setReservedSlots(slots);
-      checkSlotConflict(date, selectedSlot, extraTimeMinutes, extraTimeDirection, slots);
+      checkSlotConflict(
+        date,
+        selectedSlot,
+        extraTimeMinutes,
+        extraTimeDirection,
+        slots,
+      );
     } catch (err) {
       console.error("Failed to check availability:", err);
     }
@@ -229,6 +241,14 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!agreedToTerms) {
+      setTermsError("Morate prihvatiti uslove korišćenja da biste nastavili.");
+      return;
+    }
+
+    setTermsError("");
+
     setSubmitError("");
 
     if (!selectedDate || !selectedSlot) {
@@ -257,24 +277,35 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     // Apply the shift in the chosen direction
     if (extraTimeMinutes > 0) {
       if (extraTimeDirection === "before") {
-        startDateTime = new Date(startDateTime.getTime() - extraTimeMinutes * 60 * 1000);
+        startDateTime = new Date(
+          startDateTime.getTime() - extraTimeMinutes * 60 * 1000,
+        );
       } else {
-        endDateTime = new Date(endDateTime.getTime() + extraTimeMinutes * 60 * 1000);
+        endDateTime = new Date(
+          endDateTime.getTime() + extraTimeMinutes * 60 * 1000,
+        );
       }
     }
 
     const startHours = String(startDateTime.getHours()).padStart(2, "0");
     const startMins = String(startDateTime.getMinutes()).padStart(2, "0");
-    const startISO = toLocalISOString(selectedDate, `${startHours}:${startMins}`);
+    const startISO = toLocalISOString(
+      selectedDate,
+      `${startHours}:${startMins}`,
+    );
 
     const endHours = String(endDateTime.getHours()).padStart(2, "0");
     const endMins = String(endDateTime.getMinutes()).padStart(2, "0");
     const endISO = toLocalISOString(selectedDate, `${endHours}:${endMins}`);
 
-    const directionLabel = extraTimeDirection === "before" ? "PRE termina" : "POSLE termina";
-    const extraTimeStr = extraTimeMinutes > 0 ? `[Dodatno vreme: +${extraTimeMinutes} min (${directionLabel})]` : "";
+    const directionLabel =
+      extraTimeDirection === "before" ? "PRE termina" : "POSLE termina";
+    const extraTimeStr =
+      extraTimeMinutes > 0
+        ? `[Dodatno vreme: +${extraTimeMinutes} min (${directionLabel})]`
+        : "";
     const guestStr = guestPackage ? `[Paket: ${guestPackage}]` : "";
-    
+
     const prefix = [extraTimeStr, guestStr].filter(Boolean).join(" ");
     const formattedNotes = prefix ? `${prefix}\n${notes}`.trim() : notes.trim();
 
@@ -498,8 +529,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                           type="button"
                           onClick={() => setExtraTimeDirection("before")}
                           className={`flex-1 py-1.5 text-[10px] sm:text-xs font-bold rounded-lg transition-all ${
-                            extraTimeDirection === "before" 
-                              ? "bg-[#319795] text-white shadow-sm" 
+                            extraTimeDirection === "before"
+                              ? "bg-[#319795] text-white shadow-sm"
                               : "text-[#2D3748]/60 hover:text-[#2D3748] hover:bg-white/50"
                           }`}
                         >
@@ -509,8 +540,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                           type="button"
                           onClick={() => setExtraTimeDirection("after")}
                           className={`flex-1 py-1.5 text-[10px] sm:text-xs font-bold rounded-lg transition-all ${
-                            extraTimeDirection === "after" 
-                              ? "bg-[#319795] text-white shadow-sm" 
+                            extraTimeDirection === "after"
+                              ? "bg-[#319795] text-white shadow-sm"
                               : "text-[#2D3748]/60 hover:text-[#2D3748] hover:bg-white/50"
                           }`}
                         >
@@ -528,13 +559,25 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                     </label>
                     <div className="grid grid-cols-2 gap-2 sm:gap-3">
                       {[
-                        { value: "20 Dece + 2 Animatora", label: "20 Dece", desc: "+ 2 Animatora" },
-                        { value: "30 Dece + 3 Animatora", label: "30 Dece", desc: "+ 3 Animatora" },
+                        {
+                          value: "20 Dece + 2 Animatora",
+                          label: "20 Dece",
+                          desc: "+ 2 Animatora",
+                        },
+                        {
+                          value: "30 Dece + 3 Animatora",
+                          label: "30 Dece",
+                          desc: "+ 3 Animatora",
+                        },
                       ].map((opt) => (
                         <button
                           key={opt.value}
                           type="button"
-                          onClick={() => setGuestPackage(guestPackage === opt.value ? "" : opt.value)}
+                          onClick={() =>
+                            setGuestPackage(
+                              guestPackage === opt.value ? "" : opt.value,
+                            )
+                          }
                           className={`p-2 sm:p-3 rounded-xl border-2 text-center transition-all ${
                             guestPackage === opt.value
                               ? "border-[#319795] bg-white font-bold text-[#319795] shadow-sm"
@@ -698,6 +741,46 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                       </span>
                     )}
                   </button>
+
+                    {/* TOS & Privacy Policy */}
+                  <div className="mt-4 space-y-2">
+                    <label className="flex items-start gap-3 cursor-pointer text-sm text-slate-600">
+                      <input
+                        type="checkbox"
+                        checked={agreedToTerms}
+                        onChange={(e) => {
+                          setAgreedToTerms(e.target.checked);
+                          if (e.target.checked) setTermsError("");
+                        }}
+                        className="mt-1 h-4 w-4 rounded border-slate-300 text-pink-600 focus:ring-pink-500"
+                      />
+                      <span>
+                        Saglasan/na sam sa{" "}
+                        <a
+                          href="/uslovi-koriscenja"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-pink-600 underline font-medium hover:text-pink-700"
+                        >
+                          Uslovima korišćenja
+                        </a>{" "}
+                        i{" "}
+                        <a
+                          href="/politika-privatnosti"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-pink-600 underline font-medium hover:text-pink-700"
+                        >
+                          Politikom privatnosti
+                        </a>
+                        .
+                      </span>
+                    </label>
+
+                    {termsError && (
+                      <p className="text-xs text-red-500">{termsError}</p>
+                    )}
+                  </div>
                 </form>
               )}
             </div>
